@@ -1,0 +1,530 @@
+/* Full-page dark background */
+.mapRoot {
+  min-height: calc(100vh - 64px);
+  padding: 16px;
+  background: #1b1b1b;
+  color: #eaeaea;
+}
+
+/* Header */
+.mapHeader {
+  max-width: 1400px;
+  margin: 0 auto 12px auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.mapHeaderH1 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.mapHeaderSub {
+  font-size: 12px;
+  opacity: 0.65;
+  margin-top: 4px;
+}
+
+/* Grid layout */
+.mapGrid {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 980px) {
+  .mapGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Cards */
+.mapCard {
+  background: #252525;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  overflow: visible;
+}
+
+.mapCardMain {
+  display: flex;
+  flex-direction: column;
+  min-height: 720px;
+}
+
+.mapCardSide {
+  padding: 8px;          /* ⬅ antes 12px */
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* Topbar inside main card */
+.mapTopbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #252525;
+}
+
+.mapTopbarLeft {
+  flex: 1;
+  min-width: 280px;
+  background: #252525;
+}
+
+.mapHint {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+/* Map container */
+.mapCanvas {
+  position: relative;
+  flex: 1;
+  min-height: 420px;
+  background: #101010;
+}
+
+/* Loading toast */
+.mapToast {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 30;
+  background: rgba(20, 20, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: rgba(147, 197, 253, 0.95);
+}
+
+/* Slider card */
+.mapSliderCard {
+  padding: 12px 12px 28px 12px; /* ⬅ más espacio abajo */
+  border-radius: 14px;
+  background: #252525;
+  overflow: visible;           /* ⬅ CLAVE */
+}
+
+.mapSliderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.mapSliderLabel {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+.mapSliderValue {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  color: rgba(147, 197, 253, 0.95);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.mapSliderWrap {
+  padding: 0 6px 26px 6px; /* ⬅ espacio para los labels */
+  overflow: visible;      /* ⬅ CLAVE */
+}
+
+/* Cambios CAMBIOS */
+
+.rc-slider {
+  margin-top: 10px; /* ⬅ espacio extra para marcas */
+  height: 15px;
+}
+
+/* rc-slider overrides (dark) */
+.rc-slider-rail {
+  background-color: #504f4f;
+  height: 15px;
+  margin-top: -5px;
+}
+
+.rc-slider-track {
+  background-color: rgba(59, 130, 246, 0.9);
+  height: 15px;
+  margin-top: -5px;
+}
+
+.rc-slider-handle {
+  border: 2px solid rgba(59, 130, 246, 0.95);
+  background: #f5f5f5;
+  opacity: 1;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+}
+
+.rc-slider-mark-text [data-dating-tick="1"] {
+  display: none !important;
+}
+
+.rc-slider-dot {
+  height: 15px;
+  width: 15px;
+  margin-bottom: -4px;
+  pointer-events: none;
+}
+
+.rc-slider-mark {
+  top: 20px; /* baja un poco las marks */
+  pointer-events: none;
+}
+
+/* Toggle switch */
+.mapToggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  user-select: none;
+}
+
+.mapToggleLabel {
+  font-size: 12px;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+.mapToggleTrack {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.mapToggleTrack.on {
+  background: rgba(59, 130, 246, 0.9);
+  border-color: rgba(59, 130, 246, 0.9);
+}
+
+.mapToggleInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.mapToggleDot {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  transform: translateY(-50%);
+  transition: transform 0.15s ease;
+}
+
+.mapToggleDot.on {
+  transform: translate(20px, -50%);
+}
+
+/* Side panel */
+.sideTitle {
+  font-size: 13px;
+  font-weight: 800;
+  opacity: 0.85;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.sideEmpty {
+  font-size: 12px;
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.sideSiteName {
+  font-size: 14px;
+  font-weight: 800;
+  color: rgba(251, 146, 60, 0.95);
+  margin-bottom: 10px;
+}
+
+.sideLoading {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.sideTableWrap::after {
+  content: "";
+  display: block;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Table */
+
+.sideTableContainer {
+  max-height: 620px; /* Define la altura máxima del contenedor */
+  overflow-y: auto; /* Permite el scroll vertical solo si es necesario */
+  border-radius: 11px;
+  background: #1f1f1f;
+}
+
+.sideTableWrap {
+  border-radius: 8px; /* Ajusta si es necesario */
+  height: 100%;
+  background: #1f1f1f;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 8px; /* Espacio interno para los bordes */
+}
+
+.sideTableScroll {
+  height: 100%;
+  overflow: auto;
+  border-radius: 11px;                   /* un pelín menor que el wrap */
+  background: #1f1f1f;
+  scrollbar-gutter: stable;
+}
+
+.sideTable {
+  width: 100%;
+  border-collapse: separate;
+  text-align: center;
+  font-size: 12px;
+  border-spacing: 3px;
+  background: #1f1f1f;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.sideTable thead th {
+  position: sticky;
+  top: 0;
+  background: #262626;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.sideTable tbody tr {
+  background-color: #1f1f1f; /* fondo base único */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sideTable tbody tr td {
+  background-color: #1f1f1f;
+}
+
+.sideTable tbody td {
+  padding: 10px;
+  border-bottom: 1px solid rgb(255, 255, 255);
+  color: rgba(255, 255, 255, 0.9); /* ⬅ fuerza texto claro */
+}
+
+.sideTable tbody tr:hover td {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sideRef {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sideTable th,
+.sideTable td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.sideTable *,
+.sideTable thead,
+.sideTable tbody,
+.sideTable tr,
+.sideTable td,
+.sideTable th {
+  background-color: inherit;
+}
+.sideTable tbody tr:nth-child(even),
+.sideTable tbody tr:nth-child(odd) {
+  background-color: #1f1f1f !important;
+}
+
+.sideTable tbody tr:nth-child(even) td,
+.sideTable tbody tr:nth-child(odd) td {
+  background-color: #1f1f1f !important;
+}
+
+.searchWrap {
+  position: relative;
+  width: min(420px, 100%);
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+
+  background: #1a1a1a;               /* ⬅ fondo oscuro */
+  color: rgba(255, 255, 255, 0.92);  /* ⬅ texto claro */
+
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.searchInput:focus {
+  border-color: rgba(59, 130, 246, 0.9);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.searchStatus {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.searchDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+
+  background: #222;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+
+  z-index: 50;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.searchItem {
+  padding: 10px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.searchItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ===== MAP LEGEND ===== */
+.mapLegend {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 20;
+
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(6px);
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  font-size: 12px;
+}
+
+/* item */
+.mapLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* texto */
+.legendLabel {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+}
+
+/* círculo (modo sitios) */
+.legendCircle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ea580c;       /* mismo color que circle */
+  border: 1px solid #ffffff;
+  box-sizing: border-box;
+}
+
+/* cuadrado (modo fechados) */
+.legendSquare {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  background: #ea580c;       /* mismo color que square */
+  border: 1px solid #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.downloadCSVButtonContainer {
+  /* Aquí puedes agregar estilos para posicionar y diseñar el contenedor del botón */
+  display: flex;
+  justify-content: center; /* Centrar horizontalmente */
+  align-items: center; /* Centrar verticalmente */
+  margin-top: 10px; /* Espacio entre la tabla y el botón */
+  margin-bottom: 10px;
+}
+
+.download-csv-btn {
+  background-color: #262626;
+  border: 1px solid rgb(255, 255, 255);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 10px 20px; /* Espacio interior */
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+
+.download-csv-btn:hover {
+  background-color: rgba(59, 130, 246, 0.9);
+  color: rgb(255, 255, 255);
+}
