@@ -47,18 +47,9 @@ const DataPage = () => {
             </div>
 
 
-            <h1>Bibliography Used</h1>
-
-            <ul className='bibliography-list'>
-              <li>
-                Campbell, R., &amp; Quiroz, D. (2015). Chronological database for Southern Chile (35°30′–42° S), ∼33000 BP to present: Human implications and archaeological biases. <em>Quaternary International</em>, <em>356</em>, 39–53. <a href="https://doi.org/10.1016/j.quaint.2014.07.026" target="_blank" rel="noreferrer">https://doi.org/10.1016/j.quaint.2014.07.026</a>
-              </li>
-              <li>
-                Méndez, C., Gil, A., Neme, G., Nuevo Delaunay, A., Cortegoso, V., Huidobro, C., Durán, V., &amp; Maldonado, A. (2015). Mid Holocene radiocarbon ages in the Subtropical Andes (∼29°–35° S), climatic change and implications for human space organization. <em>Quaternary International</em>, <em>356</em>, 15–26. <a href="https://doi.org/10.1016/j.quaint.2014.06.059" target="_blank" rel="noreferrer">https://doi.org/10.1016/j.quaint.2014.06.059</a>
-              </li>
-            </ul>
-
           </div>
+
+          <MarkdownViewer url={'https://raw.githubusercontent.com/ArKG-Data/ArKG-docs/refs/heads/main/bibliography.md'}/>
 
     </div>
   );
