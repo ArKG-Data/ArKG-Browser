@@ -1,12 +1,11 @@
-/* Full-page dark background */
 .mapRoot {
-  min-height: calc(100vh - 64px);
+  min-height: 100vh; 
   padding: 16px;
   background: #1b1b1b;
   color: #eaeaea;
+  display: flow-root; 
 }
 
-/* Header */
 .mapHeader {
   max-width: 1400px;
   margin: 0 auto 12px auto;
@@ -27,7 +26,6 @@
   margin-top: 4px;
 }
 
-/* Grid layout */
 .mapGrid {
   max-width: 1400px;
   margin: 0 auto;
@@ -42,7 +40,6 @@
   }
 }
 
-/* Cards */
 .mapCard {
   background: #252525;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -58,13 +55,12 @@
 }
 
 .mapCardSide {
-  padding: 8px;          /* ⬅ antes 12px */
+  padding: 8px;
   background: transparent;
   border: none;
   box-shadow: none;
 }
 
-/* Topbar inside main card */
 .mapTopbar {
   display: flex;
   align-items: flex-start;
@@ -87,7 +83,6 @@
   opacity: 0.65;
 }
 
-/* Map container */
 .mapCanvas {
   position: relative;
   flex: 1;
@@ -95,7 +90,6 @@
   background: #101010;
 }
 
-/* Loading toast */
 .mapToast {
   position: absolute;
   top: 10px;
@@ -110,12 +104,11 @@
   color: rgba(147, 197, 253, 0.95);
 }
 
-/* Slider card */
 .mapSliderCard {
-  padding: 12px 12px 28px 12px; /* ⬅ más espacio abajo */
+  padding: 12px 12px 28px 12px;
   border-radius: 14px;
   background: #252525;
-  overflow: visible;           /* ⬅ CLAVE */
+  overflow: visible;
 }
 
 .mapSliderRow {
@@ -145,18 +138,14 @@
 }
 
 .mapSliderWrap {
-  padding: 0 6px 26px 6px; /* ⬅ espacio para los labels */
-  overflow: visible;      /* ⬅ CLAVE */
+  padding: 0 6px 26px 6px;
+  overflow: visible;
 }
-
-/* Cambios CAMBIOS */
-
 .rc-slider {
-  margin-top: 10px; /* ⬅ espacio extra para marcas */
+  margin-top: 10px;
   height: 15px;
 }
 
-/* rc-slider overrides (dark) */
 .rc-slider-rail {
   background-color: #504f4f;
   height: 15px;
@@ -190,11 +179,10 @@
 }
 
 .rc-slider-mark {
-  top: 20px; /* baja un poco las marks */
+  top: 20px;
   pointer-events: none;
 }
 
-/* Toggle switch */
 .mapToggle {
   display: flex;
   align-items: center;
@@ -246,7 +234,6 @@
   transform: translate(20px, -50%);
 }
 
-/* Side panel */
 .sideTitle {
   font-size: 13px;
   font-weight: 800;
@@ -281,27 +268,25 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
-/* Table */
-
 .sideTableContainer {
-  max-height: 620px; /* Define la altura máxima del contenedor */
-  overflow-y: auto; /* Permite el scroll vertical solo si es necesario */
+  max-height: 620px;
+  overflow-y: auto;
   border-radius: 11px;
   background: #1f1f1f;
 }
 
 .sideTableWrap {
-  border-radius: 8px; /* Ajusta si es necesario */
+  border-radius: 8px;
   height: 100%;
   background: #1f1f1f;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  padding: 8px; /* Espacio interno para los bordes */
+  padding: 8px;
 }
 
 .sideTableScroll {
   height: 100%;
   overflow: auto;
-  border-radius: 11px;                   /* un pelín menor que el wrap */
+  border-radius: 11px;
   background: #1f1f1f;
   scrollbar-gutter: stable;
 }
@@ -329,7 +314,7 @@
 }
 
 .sideTable tbody tr {
-  background-color: #1f1f1f; /* fondo base único */
+  background-color: #1f1f1f;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -340,7 +325,7 @@
 .sideTable tbody td {
   padding: 10px;
   border-bottom: 1px solid rgb(255, 255, 255);
-  color: rgba(255, 255, 255, 0.9); /* ⬅ fuerza texto claro */
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .sideTable tbody tr:hover td {
@@ -388,8 +373,8 @@
   padding: 10px 12px;
   border-radius: 10px;
 
-  background: #1a1a1a;               /* ⬅ fondo oscuro */
-  color: rgba(255, 255, 255, 0.92);  /* ⬅ texto claro */
+  background: #1a1a1a;
+  color: rgba(255, 255, 255, 0.92);
 
   border: 1px solid rgba(255, 255, 255, 0.14);
   outline: none;
@@ -440,7 +425,6 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
-/* ===== MAP LEGEND ===== */
 .mapLegend {
   position: absolute;
   left: 14px;
@@ -462,35 +446,31 @@
   font-size: 12px;
 }
 
-/* item */
 .mapLegendItem {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-/* texto */
 .legendLabel {
   color: rgba(255, 255, 255, 0.85);
   font-weight: 500;
 }
 
-/* círculo (modo sitios) */
 .legendCircle {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #ea580c;       /* mismo color que circle */
+  background: #ea580c;
   border: 1px solid #ffffff;
   box-sizing: border-box;
 }
 
-/* cuadrado (modo fechados) */
 .legendSquare {
   width: 18px;
   height: 18px;
   border-radius: 3px;
-  background: #ea580c;       /* mismo color que square */
+  background: #ea580c;
   border: 1px solid #ffffff;
 
   display: flex;
@@ -502,29 +482,41 @@
   color: #ffffff;
 }
 
-.downloadCSVButtonContainer {
-  /* Aquí puedes agregar estilos para posicionar y diseñar el contenedor del botón */
+.buttonGroup {
   display: flex;
-  justify-content: center; /* Centrar horizontalmente */
-  align-items: center; /* Centrar verticalmente */
-  margin-top: 10px; /* Espacio entre la tabla y el botón */
-  margin-bottom: 10px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  gap: 12px;
 }
 
+.downloadCSVButtonContainer, 
+.inyectQueryButtonContainer {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.inyect-query-btn,
 .download-csv-btn {
   background-color: #262626;
   border: 1px solid rgb(255, 255, 255);
   color: rgba(255, 255, 255, 0.7);
-  padding: 10px 20px; /* Espacio interior */
+  padding: 10px 24px;
   text-align: center;
   text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
+  font-size: 15px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 180px;
 }
 
+.inyect-query-btn:hover,
 .download-csv-btn:hover {
   background-color: rgba(59, 130, 246, 0.9);
   color: rgb(255, 255, 255);
 }
+ 

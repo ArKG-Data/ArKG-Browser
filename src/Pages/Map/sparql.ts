@@ -1,4 +1,4 @@
-const DEFAULT_ENDPOINT = "http://localhost:1234/sparql";
+const DEFAULT_ENDPOINT = "https://arkg.cl/api/sparql";
 
 export async function sparqlQuery(query: string) {
   const endpoint =

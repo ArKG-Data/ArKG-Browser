@@ -4,6 +4,7 @@ import { sparqlQuery } from "./sparql";
 import type { MapPoint } from "./Map";
 
 import DownloadCSVButton from "./DownloadCsv";
+import InyectQuery from "./InyectQuery";
 
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
@@ -157,6 +158,7 @@ export default function MapPage() {
   const [viewCenter, setViewCenter] = useState<[number, number] | null>(null);
 
   const [selectedSiteName, setSelectedSiteName] = useState<string | null>(null);
+  const [selectedSite, setSelectedSite] = useState<MapPoint | null>(null);
   const [fechados, setFechados] = useState<FechadoData[]>([]);
   const [loadingFechados, setLoadingFechados] = useState(false);
 
@@ -266,6 +268,7 @@ export default function MapPage() {
     const minYear = dateRange[0];
     const maxYear = dateRange[1];
 
+    setSelectedSite(site);
     setSelectedSiteName(site.label);
     setFechados([]);
     setLoadingFechados(true);
@@ -437,9 +440,18 @@ export default function MapPage() {
               ) : fechados.length > 0 ? (
                 <div className="sideTableContainer">
                   <div className="sideTableWrap">
-                    <div className="downloadCSVButtonContainer">
+                    <div className="buttonGroup">
+                      <div className="downloadCSVButtonContainer">
                         <DownloadCSVButton fechados={fechados} selectedSiteName={selectedSiteName}/>
                       </div>
+                      <div className="inyectQuerieButtonContainer">
+                        <InyectQuery 
+                          site={selectedSite}
+                          minYear={dateRange[0]}
+                          maxYear={dateRange[1]}
+                        />
+                      </div>
+                    </div>
                     <div className="sideTableScroll">
                       <table className="sideTable">
                         <thead>
