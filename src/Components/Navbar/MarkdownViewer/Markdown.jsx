@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from "axios";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 import 'github-markdown-css/github-markdown-light.css'
 
 const MarkdownViewer = ({url}) => {
@@ -27,8 +28,8 @@ const MarkdownViewer = ({url}) => {
     return (
         <div className='markdown-body'>
             {markdown != '' ? (
-                    <Markdown remarkPlugins={[remarkGfm]}>{markdown}</Markdown>
-                    ): (<Markdown remarkPlugins={[remarkGfm]}>Loading...</Markdown>)}
+                    <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{markdown}</Markdown>
+                    ): (<Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>Loading...</Markdown>)}
         </div>
     )
 

@@ -13,6 +13,7 @@ const Navbar = () => {
           </Link>
         </div>
 
+        <Link to="/news">News</Link>
         <Link to="/queries">Queries</Link>
 	<Link to="/map">Map</Link>
         <Link to="/graph">Graph</Link>

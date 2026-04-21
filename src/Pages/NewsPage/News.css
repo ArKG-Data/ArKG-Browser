@@ -1,0 +1,5 @@
+.news-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 4vh;
+}

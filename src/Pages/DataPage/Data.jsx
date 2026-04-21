@@ -28,6 +28,18 @@ const DataPage = () => {
     <div className='data-container'>
           
           <MarkdownViewer url={'https://raw.githubusercontent.com/ArKG-Data/ArKG-docs/refs/heads/main/predicates.md'}/>
+
+          <div className='video-section'>
+            <h2>Demo Video</h2>
+            <div className='video-wrapper'>
+              <iframe
+                src="https://www.youtube.com/embed/jlUXf-OVesE"
+                title="ArKG Demo"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
           
           <div className='markdown-body'>
 
@@ -48,6 +60,8 @@ const DataPage = () => {
 
 
           </div>
+
+          <MarkdownViewer url={'https://raw.githubusercontent.com/ArKG-Data/ArKG-docs/refs/heads/main/bibliography.md'}/>
 
     </div>
   );
