@@ -5,7 +5,7 @@ const DataPage = () => {
 
   const handleDownload = async (name) => {
     const fileUrl = 'https://raw.githubusercontent.com/ArKG-Data/ArKG-docs/refs/heads/main/data/' + name + '.ttl'
-    const fileName = name + ".ttl"; 
+    const fileName = name + ".ttl";
 
     try {
       const response = await fetch(fileUrl);
@@ -26,42 +26,54 @@ const DataPage = () => {
 
   return (
     <div className='data-container'>
-          
-          <MarkdownViewer url={'https://raw.githubusercontent.com/ArKG-Data/ArKG-docs/refs/heads/main/predicates.md'}/>
 
-          <div className='video-section'>
-            <h2>Demo Video</h2>
-            <div className='video-wrapper'>
-              <iframe
-                src="https://www.youtube.com/embed/jlUXf-OVesE"
-                title="ArKG Demo"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
+      <MarkdownViewer url={'https://raw.githubusercontent.com/ArKG-Data/ArKG-docs/refs/heads/main/predicates.md'} />
+
+      <div className='video-section'>
+        <h2>Demo Video</h2>
+        <div className='video-wrapper'>
+          <iframe
+            src="https://www.youtube.com/embed/jlUXf-OVesE"
+            title="ArKG Demo"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+      </div>
+
+      <div className='markdown-body'>
+
+        <h1>Dataset Versions</h1>
+
+        <div className='miniversion-container'>
+          <h2>Version 1.00</h2>
+          <p>The first RDF triples were generated. The data came from the Excel file “Mendez et al. 2015 mmc3.”.</p>
+          <button onClick={() => handleDownload('v1.00')}> Download</button>
+        </div>
+
+        <div className='miniversion-container'>
+          <h2>Version 1.01</h2>
+          <p>Additional data was added, originating from the Excel file “Campbell and Quiroz 2015 database dates.</p>
+          <p>The predicate <b>:TL_Age_AC_DC</b> was also added.</p>
+          <button onClick={() => handleDownload('v1.01')}> Download</button>
+        </div>
+
+        <div className='miniversion-container'>
+          <h2>Version 1.02</h2>
+          <p>Two variants are available:</p>
+          <ul>
+            <li><b>Pure:</b> Contains only the core dating triples.</li>
+            <li><b>Extended:</b> Includes the predicates <b>wdt:P131</b> and <b>wdt:P17</b>, which link each dated site to its political-administrative division, enabling location-aware graph exploration.</li>
+          </ul>
+          <div className='button-group'>
+            <button onClick={() => handleDownload('v1.02')}> Download Pure</button>
+            <button onClick={() => handleDownload('v1.02-extended')}> Download Extended</button>
           </div>
-          
-          <div className='markdown-body'>
+        </div>
 
-            <h1>Dataset Versions</h1>
-            
-            <div className='miniversion-container'>
-              <h2>Version 1.00</h2>
-              <p>The first RDF triples were generated. The data came from the Excel file “Mendez et al. 2015 mmc3.”.</p>
-              <button onClick={() => handleDownload('v1.00')}> Download</button>
-            </div>
+      </div>
 
-            <div className='miniversion-container'>
-              <h2>Version 1.01</h2>
-              <p>Additional data was added, originating from the Excel file “Campbell and Quiroz 2015 database dates.</p>
-              <p>The predicate <b>:TL_Age_AC_DC</b> was also added.</p>
-              <button onClick={() => handleDownload('v1.01')}> Download</button>
-            </div>
-
-
-          </div>
-
-          <MarkdownViewer url={'https://raw.githubusercontent.com/ArKG-Data/ArKG-docs/refs/heads/main/bibliography.md'}/>
+      <MarkdownViewer url={'https://raw.githubusercontent.com/ArKG-Data/ArKG-docs/refs/heads/main/bibliography.md'} />
 
     </div>
   );
