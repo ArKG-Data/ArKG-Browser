@@ -18,7 +18,7 @@ const DownloadCSVButton = ({ fechados, selectedSiteName }) => {
   };
 
   return (
-    <button className="download-csv-btn" onClick={handleDownload}>Descargar CSV</button>
+    <button className="download-csv-btn" onClick={handleDownload}>Download CSV</button>
   );
 };
 

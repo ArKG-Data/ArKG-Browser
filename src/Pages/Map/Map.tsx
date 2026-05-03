@@ -59,24 +59,29 @@ export default function MapComponent({
   const geojson = React.useMemo(() => {
     return {
       type: "FeatureCollection",
-      features: filteredMarkers.map((m) => ({
-        type: "Feature",
-        properties: {
-          id: m.id,
-          label: m.label,
-          iri: m.iri,
-          lat: m.lat,
-          lng: m.lng,
-          years: m.years,
-          dateCount: m.dateCount,
-        },
-        geometry: {
-          type: "Point",
-          coordinates: [m.lng, m.lat],
-        },
-      })),
+      features: filteredMarkers.map((m) => {
+        const filteredCount = m.years
+          ? m.years.filter(y => y >= minYear && y <= maxYear).length
+          : 0;
+        return {
+          type: "Feature",
+          properties: {
+            id: m.id,
+            label: m.label,
+            iri: m.iri,
+            lat: m.lat,
+            lng: m.lng,
+            years: m.years,
+            dateCount: filteredCount,
+          },
+          geometry: {
+            type: "Point",
+            coordinates: [m.lng, m.lat],
+          },
+        };
+      }),
     };
-  }, [filteredMarkers]);
+  }, [filteredMarkers, minYear, maxYear]);
 
   const countProperty = showDatesCount ? "dates_sum" : "point_count";
 
@@ -262,12 +267,12 @@ export default function MapComponent({
       <div className="mapLegend">
         <div className="mapLegendItem">
           <span className="legendCircle" />
-          <span className="legendLabel">Sitios</span>
+          <span className="legendLabel">Sites</span>
         </div>
 
         <div className="mapLegendItem">
           <span className="legendSquare">1</span>
-          <span className="legendLabel">Fechados</span>
+          <span className="legendLabel">Datings</span>
         </div>
       </div>
       

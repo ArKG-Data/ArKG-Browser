@@ -47,7 +47,7 @@ const generateMarks = (min: number, max: number) => {
 
   for (let i = Math.ceil(min / STEP) * STEP; i <= max; i += STEP) {
     const labelVal = Math.abs(i) >= 1000 ? `${Math.abs(i) / 1000}k` : Math.abs(i);
-    const suffix = i < 0 ? "AC" : i === 0 ? "" : "DC";
+    const suffix = i < 0 ? "BCE" : i === 0 ? "" : "CE";
 
     if (i == 2000) {
       console.log("sin marca");
@@ -74,7 +74,7 @@ const generateMarks = (min: number, max: number) => {
       marginTop: "6px",
       fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
     },
-    label: "12k AC",
+    label: "12k BCE",
   };
 
   marks[max] = {
@@ -85,7 +85,7 @@ const generateMarks = (min: number, max: number) => {
       marginTop: "6px",
       fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
     },
-    label: "Hoy",
+    label: "Present",
   };
 
   return marks;
@@ -117,38 +117,38 @@ function ToggleSwitch({
   );
 }
 
-function makeDatingTickMarks(years: number[], min: number, max: number) {
-  const STEP = 1;
-  const clamp = (v: number) => Math.max(min, Math.min(max, v));
-
-  const rounded = years
-    .map((y) => clamp(Math.round(y / STEP) * STEP))
-    .filter((y) => y >= min && y <= max);
-
-  const uniq = Array.from(new Set(rounded)).sort((a, b) => a - b);
-
-  const MAX_TICKS = 1000;
-  const keepEvery = uniq.length > MAX_TICKS ? Math.ceil(uniq.length / MAX_TICKS) : 1;
-
-  const marks: Record<number, any> = {};
-  for (let i = 0; i < uniq.length; i += keepEvery) {
-
-      const y = uniq[i];
-      marks[y] = (
-        <span
-          data-dating-tick="1"
-          style={{
-            display: "inline-block",
-            width: 2,
-            height: 10,
-            borderRadius: 2,
-            background: "rgba(255,255,255,0.35)",
-            transform: "translateY(2px)",
-          }}
-        />
-      );
-  }
-  return marks;
+function DatingTicks({ years, min, max }: { years: number[], min: number, max: number }) {
+  const uniq = Array.from(new Set(years)).filter(y => y >= min && y <= max);
+  
+  return (
+    <div style={{ 
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: "10px",
+      height: "15px",
+      pointerEvents: "none",
+      zIndex: 2
+    }}>
+      {uniq.map((y, i) => {
+        const pct = ((y - min) / (max - min)) * 100;
+        return (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: `${pct}%`,
+              top: 0,
+              bottom: 0,
+              width: 1,
+              background: "rgba(255,255,255,0.5)",
+              pointerEvents: "none",
+            }}
+          />
+        );
+      })}
+    </div>
+  );
 }
 
 export default function MapPage() {
@@ -171,19 +171,11 @@ export default function MapPage() {
   const [dateRange, setDateRange] = useState<number[]>([MIN_LIMIT, MAX_LIMIT]);
   const [showDatesCount, setShowDatesCount] = useState(false);
 
-  const formatYear = (y: number) => (y < 0 ? `${Math.abs(y)} AC` : `${y} DC`);
-
-  const datingTickMarks = useMemo(
-    () => makeDatingTickMarks(allDatingYears, MIN_LIMIT, MAX_LIMIT),
-    [allDatingYears, MIN_LIMIT, MAX_LIMIT]
-  );
+  const formatYear = (y: number) => (y < 0 ? `${Math.abs(y)} BCE` : `${y} CE`);
 
   const sliderMarks = useMemo(
-    () => ({
-      ...generateMarks(MIN_LIMIT, MAX_LIMIT),
-      ...datingTickMarks,
-    }),
-    [datingTickMarks, MIN_LIMIT, MAX_LIMIT]
+    () => generateMarks(MIN_LIMIT, MAX_LIMIT),
+    [MIN_LIMIT, MAX_LIMIT]
   );
 
   useEffect(() => {
@@ -368,25 +360,25 @@ export default function MapPage() {
       <div className="mapHeader">
         <div className="mapHeaderTitle">
           <div className="mapHeaderH1">Map Visualizer</div>
-          <div className="mapHeaderSub">Explora sitios arqueológicos y filtra por rango temporal.</div>
+          <div className="mapHeaderSub">Explore archaeological sites and filter by date range.</div>
         </div>
       </div>
 
       <div className="mapGrid">
         <section className="mapCard mapCardMain">
           {(loading || initialLoading) && (
-            <div className="mapToast">{initialLoading ? "Cargando sitios..." : "Ubicando..."}</div>
+            <div className="mapToast">{initialLoading ? "Loading sites..." : "Positioning..."}</div>
           )}
 
           <div className="mapTopbar">
             <div className="mapTopbarLeft">
               <SearchBar onSelect={handleSelect} />
-              <div className="mapHint">Busca un sitio para centrar el mapa.</div>
+              <div className="mapHint">Search for a site to center the map.</div>
             </div>
 
             <div className="mapTopbarRight">
               <ToggleSwitch
-                label="Mostrar cantidad de fechados"
+                label="Show dating counts"
                 checked={showDatesCount}
                 onChange={setShowDatesCount}
               />
@@ -406,37 +398,40 @@ export default function MapPage() {
 
           <div className="mapSliderCard">
             <div className="mapSliderRow">
-              <span className="mapSliderLabel">RANGO TEMPORAL</span>
+              <span className="mapSliderLabel">TIME RANGE</span>
               <span className="mapSliderValue">
                 {formatYear(dateRange[0])} — {formatYear(dateRange[1])}
               </span>
             </div>
 
             <div className="mapSliderWrap">
-              <Slider
-                range
-                min={MIN_LIMIT}
-                max={MAX_LIMIT}
-                step={50}
-                marks={sliderMarks}
-                value={dateRange as any}
-                onChange={(val) => setDateRange(val as number[])}
-              />
+              <div className="mapSliderInner">
+                <DatingTicks years={allDatingYears} min={MIN_LIMIT} max={MAX_LIMIT} />
+                <Slider
+                  range
+                  min={MIN_LIMIT}
+                  max={MAX_LIMIT}
+                  step={50}
+                  marks={sliderMarks}
+                  value={dateRange as any}
+                  onChange={(val) => setDateRange(val as number[])}
+                />
+              </div>
             </div>
           </div>
         </section>
 
         <aside className="mapCardSide">
-          <div className="sideTitle">Detalle del sitio</div>
+          <div className="sideTitle">Site Details</div>
 
           {!selectedSiteName ? (
-            <div className="sideEmpty">Haz click en un marcador del mapa para ver sus fechados asociados.</div>
+            <div className="sideEmpty">Click a marker to view its datings.</div>
           ) : (
             <>
               <div className="sideSiteName">{selectedSiteName}</div>
 
               {loadingFechados ? (
-                <div className="sideLoading">Buscando fechados…</div>
+                <div className="sideLoading">Fetching datings...</div>
               ) : fechados.length > 0 ? (
                 <div className="sideTableContainer">
                   <div className="sideTableWrap">
@@ -456,7 +451,7 @@ export default function MapPage() {
                       <table className="sideTable">
                         <thead>
                           <tr>
-                            <th>Dating</th>
+                            <th>Datings</th>
                             <th>Material</th>
                             <th>Method</th>
                             <th>14C Age</th>

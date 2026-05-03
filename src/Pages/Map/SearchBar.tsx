@@ -88,11 +88,11 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
           setIsSelecting(false);
           setText(e.target.value);
         }}
-        placeholder="Buscar sitio..."
+        placeholder="Search site..."
         autoComplete="off"
       />
 
-      {loading && <div className="searchStatus">Buscando…</div>}
+      {loading && <div className="searchStatus">Searching…</div>}
 
       {results.length > 0 && (
         <ul className="searchDropdown">

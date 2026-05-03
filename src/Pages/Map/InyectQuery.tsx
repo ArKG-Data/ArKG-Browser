@@ -77,7 +77,7 @@ WHERE {
       disabled={!site}
       style={{ opacity: !site ? 0.5 : 1, cursor: !site ? 'not-allowed' : 'pointer' }}
     >
-      Ver en Queries
+      View in Queries
     </button>
   );
 };
