@@ -1,0 +1,74 @@
+diff --git a/node_modules/@millenniumdb/graph-explorer/dist/index.js b/node_modules/@millenniumdb/graph-explorer/dist/index.js
+index b0029a6..9388992 100644
+--- a/node_modules/@millenniumdb/graph-explorer/dist/index.js
++++ b/node_modules/@millenniumdb/graph-explorer/dist/index.js
+@@ -1757,19 +1757,22 @@ var getNameAndLabelsFromRecords = (iri, records, namePredicates, labelsPredicate
+   }
+   const firstByPredicate = /* @__PURE__ */ new Map();
+   const labels = [];
++  const stripBrackets = (s) => s.startsWith("<") && s.endsWith(">") ? s.slice(1, -1) : s;
++  const normalizedLabelsPredicate = stripBrackets(labelsPredicate ?? "");
+   for (const record of records) {
+     const predStr = record.get(predKey).toString();
+-    const objStr = record.get(objKey).toString();
++    const rawObj = record.get(objKey);
++    const objStr = (typeof rawObj === "object" && rawObj !== null && "str" in rawObj) ? rawObj.str : rawObj.toString();
+     if (!firstByPredicate.has(predStr)) {
+       firstByPredicate.set(predStr, objStr);
+     }
+-    if (predStr === labelsPredicate) {
++    if (predStr === normalizedLabelsPredicate) {
+       labels.push(objStr);
+     }
+   }
+   let name = iri;
+   for (const predicate of namePredicates) {
+-    const value = firstByPredicate.get(predicate);
++    const value = firstByPredicate.get(stripBrackets(predicate));
+     if (value != null && value !== "") {
+       name = value;
+       break;
+@@ -1779,14 +1782,14 @@ var getNameAndLabelsFromRecords = (iri, records, namePredicates, labelsPredicate
+   return { name, labels };
+ };
+ var getNameAndLabels2 = async (session, iri, namePredicates, labelsPredicate, prefixes = {}) => {
+-  const query = `SELECT ?p ?o WHERE { ${iri} ?p ?o . }`;
++  const query = `SELECT ?p ?o WHERE { <${iri}> ?p ?o . }`;
+   const result = session.run(query);
+   const records = await result.records();
+   const { name, labels } = getNameAndLabelsFromRecords(iri, records, namePredicates, labelsPredicate, prefixes);
+   return { name, labels };
+ };
+ var getNodesNamesAndLabels = async (session, iris, namePredicates, labelsPredicate, prefixes = {}) => {
+-  const iriValues = iris.join(" ");
++  const iriValues = iris.map(i => '<'+i+'>').join(' ');
+   const query = `
+     SELECT ?subject ?p ?o
+     WHERE {
+@@ -1813,7 +1816,7 @@ var getNodesNamesAndLabels = async (session, iris, namePredicates, labelsPredica
+   return resultMap;
+ };
+ var getIriDescription = async (session, iri, namePredicates, labelsPredicate, prefixMap = {}) => {
+-  const query = `SELECT ?p ?o WHERE { ${iri} ?p ?o . }`;
++  const query = `SELECT ?p ?o WHERE { <${iri}> ?p ?o . }`;
+   const result = session.run(query);
+   const records = await result.records();
+   const literals = records.reduce((acc, record) => {
+@@ -1835,7 +1838,7 @@ var getLinksAndNeighbors = async (session, iri, namePredicates, labelsPredicate,
+     query = `
+       SELECT ?predicate ?neighbor ?neighborPredicate ?neighborObject
+       WHERE {
+-        ${iri} ?predicate ?neighbor .
++        <${iri}> ?predicate ?neighbor .
+         FILTER(isIRI(?neighbor))
+         OPTIONAL {
+           ?neighbor ?neighborPredicate ?neighborObject .
+@@ -1846,7 +1849,7 @@ var getLinksAndNeighbors = async (session, iri, namePredicates, labelsPredicate,
+     query = `
+       SELECT ?predicate ?neighbor ?neighborPredicate ?neighborObject
+       WHERE {
+-        ?neighbor ?predicate ${iri} .
++        ?neighbor ?predicate <${iri}> .
+         OPTIONAL {
+           ?neighbor ?neighborPredicate ?neighborObject .
+         }
