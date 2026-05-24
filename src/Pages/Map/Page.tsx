@@ -1,26 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import SearchBar from "./SearchBar";
 import { sparqlQuery } from "./sparql";
-import type { MapPoint } from "./Map";
-
-import DownloadCSVButton from "./DownloadCsv";
-import InyectQuery from "./InyectQuery";
-
+import type { MapPoint, BBox } from "./Map";
+import { useNavigate } from "react-router-dom";
+import { IconArrowsMove, IconRectangle } from "@tabler/icons-react";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
-
 import Map from "./Map";
 import "./map.css";
-
-type FechadoData = {
-  label: string;
-  reference: string;
-  material: string;
-  pointOfTime: string;
-  method: string;
-  age: string;
-  tlAge: string;
-};
 
 function parseYear(c14: string | undefined, tl: string | undefined): number | null {
   const years: number[] = [];
@@ -49,10 +36,7 @@ const generateMarks = (min: number, max: number) => {
     const labelVal = Math.abs(i) >= 1000 ? `${Math.abs(i) / 1000}k` : Math.abs(i);
     const suffix = i < 0 ? "BCE" : i === 0 ? "" : "CE";
 
-    if (i == 2000) {
-      console.log("sin marca");
-    }
-    else {
+    if (i !== 2000) {
       marks[i] = {
         style: {
           fontSize: "9px",
@@ -103,7 +87,6 @@ function ToggleSwitch({
   return (
     <label className="mapToggle">
       <span className="mapToggleLabel">{label}</span>
-
       <span className={`mapToggleTrack ${checked ? "on" : ""}`}>
         <input
           type="checkbox"
@@ -152,18 +135,14 @@ function DatingTicks({ years, min, max }: { years: number[], min: number, max: n
 }
 
 export default function MapPage() {
-  const [allDatingYears, setAllDatingYears] = useState<number[]>([]);
+  const navigate = useNavigate();
 
+  const [allDatingYears, setAllDatingYears] = useState<number[]>([]);
   const [markers, setMarkers] = useState<MapPoint[]>([]);
   const [viewCenter, setViewCenter] = useState<[number, number] | null>(null);
-
-  const [selectedSiteName, setSelectedSiteName] = useState<string | null>(null);
-  const [selectedSite, setSelectedSite] = useState<MapPoint | null>(null);
-  const [fechados, setFechados] = useState<FechadoData[]>([]);
-  const [loadingFechados, setLoadingFechados] = useState(false);
-
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [interactionMode, setInteractionMode] = useState<"click" | "area">("click");
 
   const MIN_LIMIT = -12000;
   const MAX_LIMIT = 2026;
@@ -173,10 +152,7 @@ export default function MapPage() {
 
   const formatYear = (y: number) => (y < 0 ? `${Math.abs(y)} BCE` : `${y} CE`);
 
-  const sliderMarks = useMemo(
-    () => generateMarks(MIN_LIMIT, MAX_LIMIT),
-    [MIN_LIMIT, MAX_LIMIT]
-  );
+  const sliderMarks = useMemo(() => generateMarks(MIN_LIMIT, MAX_LIMIT), []);
 
   useEffect(() => {
     async function loadAllSites() {
@@ -232,19 +208,23 @@ export default function MapPage() {
         setAllDatingYears(allYears);
 
         const siteMarkers: MapPoint[] = Object.values(sitesMap)
-          .map((site, index) => {
-            return {
-              lat: site.lat,
-              lng: site.lng,
-              label: site.label,
-              iri: site.iri,
-              id: `site-${index}`,
-              years: site.years,
-              dateCount: site.years.length,
-            };
-          })
-          .filter((m) => !isNaN(m.lat) && !isNaN(m.lng) && (Array.isArray(m.years) ? m.years.length > 0 : false));
-
+          .map((site, index) => ({
+            lat: site.lat,
+            lng: site.lng,
+            label: site.label,
+            iri: site.iri,
+            id: `site-${index}`,
+            years: site.years,
+            dateCount: site.years.length,
+          }))
+          .filter(
+            (m) =>
+              !isNaN(m.lat) &&
+              !isNaN(m.lng) &&
+              Array.isArray(m.years) &&
+              m.years.length > 0
+          );
+ 
         setMarkers(siteMarkers);
       } catch (e) {
         console.error("Error cargando sitios:", e);
@@ -252,78 +232,9 @@ export default function MapPage() {
         setInitialLoading(false);
       }
     }
-
+ 
     loadAllSites();
   }, []);
-
-  async function handleMapClick(site: MapPoint) {
-    const minYear = dateRange[0];
-    const maxYear = dateRange[1];
-
-    setSelectedSite(site);
-    setSelectedSiteName(site.label);
-    setFechados([]);
-    setLoadingFechados(true);
-
-    const query = `
-      PREFIX :    <https://arkg.cl/>
-      PREFIX wd:  <http://www.wikidata.org/entity/>
-      PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-      PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-
-      SELECT DISTINCT ?f ?r ?m ?d ?a ?t
-      WHERE {
-        ?s wdt:P9047 <${site.iri}> .
-        ?s rdfs:label ?f .
-        ?s rdf:type :Fechado .
-
-        OPTIONAL { ?s wdt:P1343 ?r . }
-        OPTIONAL {
-          ?s wdt:P186 ?materialURI .
-          ?materialURI rdfs:label ?m .
-        }
-        OPTIONAL { ?s :dating_method ?d . }
-        OPTIONAL { ?s :14C_age ?a . }
-        OPTIONAL { ?s :TL_Age_AC_DC ?t . }
-
-        FILTER(
-          (!BOUND(?a) && !BOUND(?t))
-          ||
-          (
-            (BOUND(?a) &&
-              (xsd:decimal(2026) - xsd:decimal(?a)) >= xsd:decimal(${minYear}) &&
-              (xsd:decimal(2026) - xsd:decimal(?a)) <= xsd:decimal(${maxYear})
-            )
-            ||
-            (BOUND(?t) &&
-              xsd:decimal(?t) >= xsd:decimal(${minYear}) &&
-              xsd:decimal(?t) <= xsd:decimal(${maxYear})
-            )
-          )
-        )
-      }
-    `;
-
-    try {
-      const data = await sparqlQuery(query);
-      const results: FechadoData[] = data.results.bindings.map((b: any) => ({
-        label: b.f?.value || "Sin etiqueta",
-        reference: b.r?.value || "-",
-        material: b.m?.value || "-",
-        method: b.d?.value || "-",
-        age: b.a?.value || "-",
-        tlAge: b.t?.value || "-",
-      }));
-      setFechados(results);
-    } catch (error) {
-      console.error("Error trayendo fechados", error);
-    } finally {
-      setLoadingFechados(false);
-    }
-  }
-
 
   async function handleSelect(iri: string) {
     setLoading(true);
@@ -349,10 +260,123 @@ export default function MapPage() {
         if (!isNaN(lat) && !isNaN(lng)) setViewCenter([lat, lng]);
       }
     } catch (e) {
-      console.error(e);
+      console.error("Error al centrar el mapa:", e);
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleViewInQueries(site: MapPoint, minYear: number, maxYear: number) {
+    if (!site?.iri) return;
+
+    const query = `
+      PREFIX :    <https://arkg.cl/>
+      PREFIX wd:  <http://www.wikidata.org/entity/>
+      PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+      PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+      
+      SELECT DISTINCT ?Dating ?Material ?Method ?14C_Age ?TL_Age ?Ref
+      WHERE {
+        ?s wdt:P9047 <${site.iri}> .
+        ?s rdfs:label ?Dating .
+        ?s rdf:type :Fechado .
+      
+        OPTIONAL { ?s wdt:P1343 ?Ref . }
+        OPTIONAL {
+          ?s wdt:P186 ?materialURI .
+          ?materialURI rdfs:label ?Material .
+        }
+        OPTIONAL { ?s :dating_method ?Method . }
+        OPTIONAL { ?s :14C_age ?14C_Age . }
+        OPTIONAL { ?s :TL_Age_AC_DC ?TL_Age . }
+      
+        FILTER(
+          (!BOUND(?14C_Age) && !BOUND(?TL_Age))
+          ||
+          (
+            (BOUND(?14C_Age) &&
+              (xsd:decimal(2026) - xsd:decimal(?14C_Age)) >= xsd:decimal(${minYear}) &&
+              (xsd:decimal(2026) - xsd:decimal(?14C_Age)) <= xsd:decimal(${maxYear})
+            )
+            ||
+            (BOUND(?TL_Age) &&
+              xsd:decimal(?TL_Age) >= xsd:decimal(${minYear}) &&
+              xsd:decimal(?TL_Age) <= xsd:decimal(${maxYear})
+            )
+          )
+        )
+      }`;
+
+      const searchParams = new URLSearchParams();
+      searchParams.set("action", "new");
+      searchParams.set("code", query);
+
+      navigate({
+        pathname: "/queries",
+        search: `?${searchParams.toString()}`,
+      });
+  }
+
+  function handleAreaSelect(bbox: BBox) {
+    const { minLng, maxLng, minLat, maxLat } = bbox;
+    const minYear = dateRange[0];
+    const maxYear = dateRange[1];
+
+    const query = `PREFIX :    <https://arkg.cl/>
+PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+SELECT DISTINCT ?Site ?Dating ?Material ?Method ?14C_Age ?TL_Age ?Ref
+WHERE {
+  ?s wdt:P9047 ?sitioURI .
+  ?sitioURI rdfs:label ?Site .
+  ?sitioURI :x ?x .
+  ?sitioURI :y ?y .
+  ?s rdfs:label ?Dating .
+  ?s rdf:type :Fechado .
+
+  OPTIONAL { ?s wdt:P1343 ?Ref . }
+  OPTIONAL {
+    ?s wdt:P186 ?materialURI .
+    ?materialURI rdfs:label ?Material .
+  }
+  OPTIONAL { ?s :dating_method ?Method . }
+  OPTIONAL { ?s :14C_age ?14C_Age . }
+  OPTIONAL { ?s :TL_Age_AC_DC ?TL_Age . }
+
+  FILTER(
+    xsd:decimal(?x) >= xsd:decimal(${minLng}) &&
+    xsd:decimal(?x) <= xsd:decimal(${maxLng}) &&
+    xsd:decimal(?y) >= xsd:decimal(${minLat}) &&
+    xsd:decimal(?y) <= xsd:decimal(${maxLat})
+  )
+
+  FILTER(
+    (!BOUND(?14C_Age) && !BOUND(?TL_Age))
+    ||
+    (
+      (BOUND(?14C_Age) &&
+        (xsd:decimal(2026) - xsd:decimal(?14C_Age)) >= xsd:decimal(${minYear}) &&
+        (xsd:decimal(2026) - xsd:decimal(?14C_Age)) <= xsd:decimal(${maxYear})
+      )
+      ||
+      (BOUND(?TL_Age) &&
+        xsd:decimal(?TL_Age) >= xsd:decimal(${minYear}) &&
+        xsd:decimal(?TL_Age) <= xsd:decimal(${maxYear})
+      )
+    )
+  )
+}`;
+
+    const searchParams = new URLSearchParams();
+    searchParams.set("action", "new");
+    searchParams.set("code", query);
+    navigate({ pathname: "/queries", search: `?${searchParams.toString()}` });
   }
 
   return (
@@ -377,11 +401,43 @@ export default function MapPage() {
             </div>
 
             <div className="mapTopbarRight">
-              <ToggleSwitch
-                label="Show dating counts"
-                checked={showDatesCount}
-                onChange={setShowDatesCount}
-              />
+              <div className="modeButtons">
+                <button
+                  className={`modeBtn ${interactionMode === "click" ? "active" : ""}`}
+                  onClick={() => setInteractionMode("click")}
+                  title="Click mode"
+                >
+                  <IconArrowsMove size={16} />
+                  <span>Move</span>
+                </button>
+                <button
+                  className={`modeBtn ${interactionMode === "area" ? "active" : ""}`}
+                  onClick={() => setInteractionMode("area")}
+                  title="Area mode"
+                >
+                  <IconRectangle size={16} />
+                  <span>Area</span>
+                </button>
+              </div>
+
+              <div className="modeButtons">
+                <button
+                  className={`modeBtn ${!showDatesCount ? "active" : ""}`}
+                  onClick={() => setShowDatesCount(false)}
+                  title="Show by sites"
+                >
+                  <span className="modeBtnCircle" />
+                  <span>Sites</span>
+                </button>
+                <button
+                  className={`modeBtn ${showDatesCount ? "active" : ""}`}
+                  onClick={() => setShowDatesCount(true)}
+                  title="Show by datings"
+                >
+                  <span className="modeBtnSquare" />
+                  <span>Datings</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -389,10 +445,12 @@ export default function MapPage() {
             <Map
               markers={markers}
               center={viewCenter}
-              onMarkerClick={handleMapClick}
               minYear={dateRange[0]}
               maxYear={dateRange[1]}
               showDatesCount={showDatesCount}
+              interactionMode={interactionMode}
+              onViewInQueries={handleViewInQueries}
+              onAreaSelect={handleAreaSelect}
             />
           </div>
 
@@ -420,67 +478,6 @@ export default function MapPage() {
             </div>
           </div>
         </section>
-
-        <aside className="mapCardSide">
-          <div className="sideTitle">Site Details</div>
-
-          {!selectedSiteName ? (
-            <div className="sideEmpty">Click a marker to view its datings.</div>
-          ) : (
-            <>
-              <div className="sideSiteName">{selectedSiteName}</div>
-
-              {loadingFechados ? (
-                <div className="sideLoading">Fetching datings...</div>
-              ) : fechados.length > 0 ? (
-                <div className="sideTableContainer">
-                  <div className="sideTableWrap">
-                    <div className="buttonGroup">
-                      <div className="downloadCSVButtonContainer">
-                        <DownloadCSVButton fechados={fechados} selectedSiteName={selectedSiteName}/>
-                      </div>
-                      <div className="inyectQuerieButtonContainer">
-                        <InyectQuery 
-                          site={selectedSite}
-                          minYear={dateRange[0]}
-                          maxYear={dateRange[1]}
-                        />
-                      </div>
-                    </div>
-                    <div className="sideTableScroll">
-                      <table className="sideTable">
-                        <thead>
-                          <tr>
-                            <th>Datings</th>
-                            <th>Material</th>
-                            <th>Method</th>
-                            <th>14C Age</th>
-                            <th>TL Age</th>
-                            <th>Ref</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {fechados.map((item, i) => (
-                            <tr key={i}>
-                              <td>{item.label}</td>
-                              <td>{item.material}</td>
-                              <td>{item.method}</td>
-                              <td>{item.age}</td>
-                              <td>{item.tlAge}</td>
-                              <td className="sideRef">{item.reference}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="sideEmpty">No hay fechados registrados.</div>
-              )}
-            </>
-          )}
-        </aside>
       </div>
     </div>
   );

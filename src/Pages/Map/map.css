@@ -1,13 +1,14 @@
+@import "maplibre-gl/dist/maplibre-gl.css";
+
 .mapRoot {
   min-height: 100vh;
   min-height: 100dvh;
-  padding: 64px 16px 16px 16px; 
+  padding: 64px 16px 16px 16px;
   background: #1b1b1b;
   color: #eaeaea;
   display: flow-root;
   box-sizing: border-box;
   width: 100%;
-  /* agrega esto: */
   position: relative;
   z-index: 0;
 }
@@ -44,14 +45,8 @@
   max-width: 1400px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
-}
-
-@media (max-width: 980px) {
-  .mapGrid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .mapCard {
@@ -65,14 +60,7 @@
 .mapCardMain {
   display: flex;
   flex-direction: column;
-  min-height: 720px;
-}
-
-.mapCardSide {
-  padding: 8px;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  min-height: 800px;
 }
 
 .mapTopbar {
@@ -100,7 +88,7 @@
 .mapCanvas {
   position: relative;
   flex: 1;
-  min-height: 420px;
+  min-height: 620px;
   background: #101010;
 }
 
@@ -155,6 +143,7 @@
   padding: 0 6px 26px 6px;
   overflow: visible;
 }
+
 .rc-slider {
   margin-top: 5px;
   height: 15px;
@@ -189,10 +178,6 @@
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3) !important;
 }
 
-.rc-slider-mark-text [data-dating-tick="1"] {
-  display: inline-block !important;
-}
-
 .rc-slider-dot {
   display: none !important;
 }
@@ -207,7 +192,6 @@
   display: flex;
   align-items: center;
 }
-
 
 .mapToggle {
   display: flex;
@@ -260,135 +244,6 @@
   transform: translate(20px, -50%);
 }
 
-.sideTitle {
-  font-size: 13px;
-  font-weight: 800;
-  opacity: 0.85;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-}
-
-.sideEmpty {
-  font-size: 12px;
-  opacity: 0.6;
-  font-style: italic;
-}
-
-.sideSiteName {
-  font-size: 14px;
-  font-weight: 800;
-  color: rgba(251, 146, 60, 0.95);
-  margin-bottom: 10px;
-}
-
-.sideLoading {
-  font-size: 12px;
-  opacity: 0.75;
-}
-
-.sideTableWrap::after {
-  content: "";
-  display: block;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.sideTableContainer {
-  max-height: 620px;
-  overflow-y: auto;
-  border-radius: 11px;
-  background: #1f1f1f;
-}
-
-.sideTableWrap {
-  border-radius: 8px;
-  height: 100%;
-  background: #1f1f1f;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  padding: 8px;
-}
-
-.sideTableScroll {
-  height: 100%;
-  overflow: auto;
-  border-radius: 11px;
-  background: #1f1f1f;
-  scrollbar-gutter: stable;
-}
-
-.sideTable {
-  width: 100%;
-  border-collapse: separate;
-  text-align: center;
-  font-size: 12px;
-  border-spacing: 3px;
-  background: #1f1f1f;
-  color: rgba(255, 255, 255, 0.92);
-}
-
-.sideTable thead th {
-  position: sticky;
-  top: 0;
-  background: #262626;
-  color: rgba(255, 255, 255, 0.7);
-  text-transform: uppercase;
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  padding: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.sideTable tbody tr {
-  background-color: #1f1f1f;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.sideTable tbody tr td {
-  background-color: #1f1f1f;
-}
-
-.sideTable tbody td {
-  padding: 10px;
-  border-bottom: 1px solid rgb(255, 255, 255);
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.sideTable tbody tr:hover td {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.sideRef {
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sideTable th,
-.sideTable td {
-  text-align: center;
-  vertical-align: middle;
-}
-
-.sideTable *,
-.sideTable thead,
-.sideTable tbody,
-.sideTable tr,
-.sideTable td,
-.sideTable th {
-  background-color: inherit;
-}
-.sideTable tbody tr:nth-child(even),
-.sideTable tbody tr:nth-child(odd) {
-  background-color: #1f1f1f !important;
-}
-
-.sideTable tbody tr:nth-child(even) td,
-.sideTable tbody tr:nth-child(odd) td {
-  background-color: #1f1f1f !important;
-}
-
 .searchWrap {
   position: relative;
   width: min(420px, 100%);
@@ -398,12 +253,11 @@
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
-
   background: #1a1a1a;
   color: rgba(255, 255, 255, 0.92);
-
   border: 1px solid rgba(255, 255, 255, 0.14);
   outline: none;
+  box-sizing: border-box;
 }
 
 .searchInput::placeholder {
@@ -426,15 +280,12 @@
   top: calc(100% + 8px);
   left: 0;
   right: 0;
-
   background: #222;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
-
   margin: 0;
   padding: 6px;
   list-style: none;
-
   z-index: 50;
   max-height: 260px;
   overflow-y: auto;
@@ -456,18 +307,14 @@
   left: 14px;
   bottom: 14px;
   z-index: 20;
-
   background: rgba(20, 20, 20, 0.85);
   backdrop-filter: blur(6px);
-
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
-
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
   font-size: 12px;
 }
@@ -498,51 +345,139 @@
   border-radius: 3px;
   background: #ea580c;
   border: 1px solid #ffffff;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   font-size: 11px;
   font-weight: 700;
   color: #ffffff;
 }
 
-.buttonGroup {
+.sitePopup .maplibregl-popup-content {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.sitePopup .maplibregl-popup-tip {
+  border-top-color: #2a2a2a;
+}
+
+.sitePopup .maplibregl-popup-close-button {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 16px;
+  padding: 4px 8px;
+  line-height: 1;
+  top: 4px;
+  right: 4px;
+}
+
+.sitePopup .maplibregl-popup-close-button:hover {
+  color: #ffffff;
+  background: transparent;
+}
+
+.popupInner {
+  background: #2a2a2a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px 16px 12px 16px;
+  min-width: 200px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  margin-top: 15px;
-  margin-bottom: 15px;
-  gap: 12px;
+  gap: 6px;
 }
 
-.downloadCSVButtonContainer, 
-.inyectQueryButtonContainer {
-  display: flex;
-  justify-content: center;
-  width: 100%;
+.popupSiteName {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(251, 146, 60, 0.95);
+  line-height: 1.3;
+  padding-right: 18px;
 }
 
-.inyect-query-btn,
-.download-csv-btn {
-  background-color: #262626;
-  border: 1px solid rgb(255, 255, 255);
-  color: rgba(255, 255, 255, 0.7);
-  padding: 10px 24px;
-  text-align: center;
-  text-decoration: none;
-  font-size: 15px;
+.popupMeta {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.popupQueryBtn {
+  margin-top: 6px;
+  background: #353535;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.75);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 180px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  width: 100%;
+  text-align: center;
 }
 
-.inyect-query-btn:hover,
-.download-csv-btn:hover {
-  background-color: rgba(59, 130, 246, 0.9);
-  color: rgb(255, 255, 255);
+.popupQueryBtn:hover {
+  background: #444444;
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
 }
- 
+
+.mapTopbarRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.modeButtons {
+  display: flex;
+  gap: 4px;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.modeBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.modeBtn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.modeBtn.active {
+  background: rgba(59, 130, 246, 0.85);
+  color: #ffffff;
+}
+
+.modeBtnCircle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.9;
+  flex-shrink: 0;
+}
+
+.modeBtnSquare {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: currentColor;
+  opacity: 0.9;
+  flex-shrink: 0;
+}
