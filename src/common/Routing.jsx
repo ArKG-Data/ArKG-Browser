@@ -7,6 +7,8 @@ import GraphPage from "../Pages/GraphPage/Graph";
 import DataPage from "../Pages/DataPage/Data";
 import MapPage from "../Pages/Map/Page";
 import NewsPage from "../Pages/NewsPage/News";
+import ChatbotPage from "../Pages/ChatbotPage/Chatbot";
+import RecursosPage from "../Pages/RecursosPage/Recursos";
 
 function Routing (){
     return (
@@ -15,11 +17,13 @@ function Routing (){
             <Navbar />
             <Routes>
                 <Route path={'/'} element={<HomePage/>}></Route>
-                <Route path={'/news'} element={<NewsPage/>}></Route>
+	        <Route path={'/news'} element={<NewsPage/>}></Route>
                 <Route path={'/queries'} element={<QueriesPage/>}></Route>
+                <Route path={'/chatbot'} element={<ChatbotPage/>}></Route>
                 <Route path={'/graph'} element={<GraphPage></GraphPage>}></Route>
                 <Route path={'/data'} element={<DataPage></DataPage>}></Route>
-	    	<Route path={'/map'} element={<MapPage/>}></Route>
+                <Route path={'/map'} element={<MapPage/>}></Route>
+                <Route path={'/recursos'} element={<RecursosPage/>}></Route>
                 <Route path={'/about'} element={<AboutPage/>}></Route>
             </Routes>
         </BrowserRouter>

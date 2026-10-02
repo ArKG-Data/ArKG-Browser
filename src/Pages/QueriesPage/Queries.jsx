@@ -5,12 +5,12 @@ import "./Queries.css";
 const QueriesPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  
-  const [iframeSrc, setIframeSrc] = useState("https://arkg.cl/queries/");
+
+  const [iframeSrc, setIframeSrc] = useState(`${import.meta.env.VITE_ARKG_QUERIES_URL}/`);
 
   useEffect(() => {
     if (location.search) {
-      setIframeSrc(`https://arkg.cl/queries/${location.search}`);
+      setIframeSrc(`${import.meta.env.VITE_ARKG_QUERIES_URL}/${location.search}`);
 
       navigate("/queries", { replace: true });
     }

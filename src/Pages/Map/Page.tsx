@@ -13,7 +13,7 @@ function parseYear(c14: string | undefined, tl: string | undefined): number | nu
   const years: number[] = [];
   if (c14) {
     const age = parseFloat(c14);
-    if (!isNaN(age)) years.push(2026 - age);
+    if (!isNaN(age)) years.push(1950 - age);
   }
   if (tl) {
     const val = tl.toUpperCase();
@@ -28,13 +28,29 @@ function parseYear(c14: string | undefined, tl: string | undefined): number | nu
   return Math.min(...years);
 }
 
-const generateMarks = (min: number, max: number) => {
+const generateMarks = (min: number, max: number, timeMode: "BCE/CE" | "BP") => {
   const marks: Record<number, any> = {};
   const STEP = 2000;
 
   for (let i = Math.ceil(min / STEP) * STEP; i <= max; i += STEP) {
-    const labelVal = Math.abs(i) >= 1000 ? `${Math.abs(i) / 1000}k` : Math.abs(i);
-    const suffix = i < 0 ? "BCE" : i === 0 ? "" : "CE";
+    let label = "";
+    if (timeMode === "BCE/CE") {
+      if (i === 0) {
+        label = "1 CE";
+      } else {
+        const labelVal = Math.abs(i) >= 1000 ? `${Math.abs(i) / 1000}k` : Math.abs(i);
+        const suffix = i < 0 ? "BCE" : "CE";
+        label = `${labelVal} ${suffix}`;
+      }
+    } else {
+      const bpVal = 1950 - i;
+      if (bpVal < 0) {
+        label = "Modern";
+      } else {
+        const labelVal = bpVal >= 1000 ? `${Math.round(bpVal / 1000)}k` : bpVal;
+        label = `${labelVal} BP`;
+      }
+    }
 
     if (i !== 2000) {
       marks[i] = {
@@ -45,7 +61,7 @@ const generateMarks = (min: number, max: number) => {
           marginTop: "6px",
           fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
         },
-        label: `${labelVal}${suffix ? " " + suffix : ""}`,
+        label,
       };
     }
   }
@@ -58,7 +74,7 @@ const generateMarks = (min: number, max: number) => {
       marginTop: "6px",
       fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
     },
-    label: "12k BCE",
+    label: timeMode === "BCE/CE" ? "12k BCE" : "14k BP",
   };
 
   marks[max] = {
@@ -75,30 +91,7 @@ const generateMarks = (min: number, max: number) => {
   return marks;
 };
 
-function ToggleSwitch({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <label className="mapToggle">
-      <span className="mapToggleLabel">{label}</span>
-      <span className={`mapToggleTrack ${checked ? "on" : ""}`}>
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
-          className="mapToggleInput"
-        />
-        <span className={`mapToggleDot ${checked ? "on" : ""}`} />
-      </span>
-    </label>
-  );
-}
+
 
 function DatingTicks({ years, min, max }: { years: number[], min: number, max: number }) {
   const uniq = Array.from(new Set(years)).filter(y => y >= min && y <= max);
@@ -149,10 +142,20 @@ export default function MapPage() {
 
   const [dateRange, setDateRange] = useState<number[]>([MIN_LIMIT, MAX_LIMIT]);
   const [showDatesCount, setShowDatesCount] = useState(false);
+  const [timeMode, setTimeMode] = useState<"BCE/CE" | "BP">("BP");
 
-  const formatYear = (y: number) => (y < 0 ? `${Math.abs(y)} BCE` : `${y} CE`);
+  const formatYear = (y: number, mode: "BCE/CE" | "BP") => {
+    if (mode === "BCE/CE") {
+      if (y === 0) return "1 CE";
+      return y < 0 ? `${Math.abs(y)} BCE` : `${y} CE`;
+    } else {
+      const bpVal = 1950 - y;
+      if (bpVal < 0) return "Modern";
+      return `${bpVal} BP (Uncal.)`;
+    }
+  };
 
-  const sliderMarks = useMemo(() => generateMarks(MIN_LIMIT, MAX_LIMIT), []);
+  const sliderMarks = useMemo(() => generateMarks(MIN_LIMIT, MAX_LIMIT, timeMode), [timeMode]);
 
   useEffect(() => {
     async function loadAllSites() {
@@ -271,43 +274,47 @@ export default function MapPage() {
 
     const query = `
       PREFIX :    <https://arkg.cl/>
-      PREFIX wd:  <http://www.wikidata.org/entity/>
-      PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-      PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
-      PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-      PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wd:  <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
       
-      SELECT DISTINCT ?Dating ?Material ?Method ?14C_Age ?TL_Age ?Ref
-      WHERE {
-        ?s wdt:P9047 <${site.iri}> .
-        ?s rdfs:label ?Dating .
-        ?s rdf:type :Fechado .
-      
-        OPTIONAL { ?s wdt:P1343 ?Ref . }
-        OPTIONAL {
-          ?s wdt:P186 ?materialURI .
-          ?materialURI rdfs:label ?Material .
-        }
-        OPTIONAL { ?s :dating_method ?Method . }
-        OPTIONAL { ?s :14C_age ?14C_Age . }
-        OPTIONAL { ?s :TL_Age_AC_DC ?TL_Age . }
-      
-        FILTER(
-          (!BOUND(?14C_Age) && !BOUND(?TL_Age))
-          ||
-          (
-            (BOUND(?14C_Age) &&
-              (xsd:decimal(2026) - xsd:decimal(?14C_Age)) >= xsd:decimal(${minYear}) &&
-              (xsd:decimal(2026) - xsd:decimal(?14C_Age)) <= xsd:decimal(${maxYear})
-            )
-            ||
-            (BOUND(?TL_Age) &&
-              xsd:decimal(?TL_Age) >= xsd:decimal(${minYear}) &&
-              xsd:decimal(?TL_Age) <= xsd:decimal(${maxYear})
-            )
-          )
-        )
-      }`;
+SELECT ?Site ?Dating ?Material ?Method ?14C_Age ?TL_Age ?SD (GROUP_CONCAT(DISTINCT ?Ref; separator=", ") AS ?References)
+WHERE {
+  BIND(<${site.iri}> AS ?SiteIRI)
+  ?SiteIRI rdfs:label ?Site .
+  ?s wdt:P9047 ?SiteIRI .
+  ?s rdfs:label ?Dating .
+  ?s rdf:type :Fechado .
+  ?s :sd ?SD .
+
+  OPTIONAL { ?s wdt:P1343 ?Ref . }
+  OPTIONAL {
+    ?s wdt:P186 ?materialURI .
+    ?materialURI rdfs:label ?Material .
+  }
+  OPTIONAL { ?s :dating_method ?Method . }
+  OPTIONAL { ?s :14C_age ?14C_Age . }
+  OPTIONAL { ?s :TL_Age_AC_DC ?TL_Age . }
+
+  FILTER(
+    (!BOUND(?14C_Age) && !BOUND(?TL_Age))
+    ||
+    (
+      (BOUND(?14C_Age) &&
+        (xsd:decimal(2026) - xsd:decimal(?14C_Age)) >= xsd:decimal(${minYear}) &&
+        (xsd:decimal(2026) - xsd:decimal(?14C_Age)) <= xsd:decimal(${maxYear})
+      )
+      ||
+      (BOUND(?TL_Age) &&
+        xsd:decimal(?TL_Age) >= xsd:decimal(${minYear}) &&
+        xsd:decimal(?TL_Age) <= xsd:decimal(${maxYear})
+      )
+    )
+  )
+}
+GROUP BY ?Site ?Dating ?Material ?Method ?14C_Age ?TL_Age ?SD`;
 
       const searchParams = new URLSearchParams();
       searchParams.set("action", "new");
@@ -331,7 +338,7 @@ PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT DISTINCT ?Site ?Dating ?Material ?Method ?14C_Age ?TL_Age ?Ref
+SELECT ?Site ?Dating ?Material ?Method ?14C_Age ?TL_Age ?SD (GROUP_CONCAT(DISTINCT ?Ref; separator=", ") AS ?References)
 WHERE {
   ?s wdt:P9047 ?sitioURI .
   ?sitioURI rdfs:label ?Site .
@@ -339,6 +346,7 @@ WHERE {
   ?sitioURI :y ?y .
   ?s rdfs:label ?Dating .
   ?s rdf:type :Fechado .
+  ?s :sd ?SD .
 
   OPTIONAL { ?s wdt:P1343 ?Ref . }
   OPTIONAL {
@@ -371,7 +379,8 @@ WHERE {
       )
     )
   )
-}`;
+}
+GROUP BY ?Site ?Dating ?Material ?Method ?14C_Age ?TL_Age ?SD`;
 
     const searchParams = new URLSearchParams();
     searchParams.set("action", "new");
@@ -456,9 +465,25 @@ WHERE {
 
           <div className="mapSliderCard">
             <div className="mapSliderRow">
-              <span className="mapSliderLabel">TIME RANGE</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <span className="mapSliderLabel">TIME RANGE</span>
+                <div className="modeButtons">
+                  <button
+                    className={`modeBtn ${timeMode === "BP" ? "active" : ""}`}
+                    onClick={() => setTimeMode("BP")}
+                  >
+                    BP
+                  </button>
+                  <button
+                    className={`modeBtn ${timeMode === "BCE/CE" ? "active" : ""}`}
+                    onClick={() => setTimeMode("BCE/CE")}
+                  >
+                    BCE/CE
+                  </button>
+                </div>
+              </div>
               <span className="mapSliderValue">
-                {formatYear(dateRange[0])} — {formatYear(dateRange[1])}
+                {formatYear(dateRange[0], timeMode)} to {formatYear(dateRange[1], timeMode)}
               </span>
             </div>
 
@@ -482,3 +507,4 @@ WHERE {
     </div>
   );
 }
+

@@ -1,0 +1,19 @@
+.chatbotRoot {
+  height: 100vh;
+  box-sizing: border-box;
+  background: #1b1b1b;
+  color: #eaeaea;
+  display: flex;
+  flex-direction: column;
+  padding: calc(6vh + 16px) 16px 32px 16px; /* Navbar is 6vh, plus 16px extra breathing room */
+  overflow: hidden;
+}
+
+.chatbotRoot::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: #1b1b1b;
+  z-index: -1;
+}
+

@@ -3,7 +3,8 @@ import { Container, useMantineColorScheme } from "@mantine/core";
 import { driver } from "@millenniumdb/driver";
 import "./Graph.css"
 
-const driverInstance = driver("https://arkg.cl/api/");
+// Reemplaza la línea 6:
+const driverInstance = driver(`${import.meta.env.VITE_ARKG_ENDPOINT}/`);
 
 const args = {
     searchKeys: ['<http://www.w3.org/2000/01/rdf-schema#label>'],
