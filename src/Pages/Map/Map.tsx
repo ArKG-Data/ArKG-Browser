@@ -11,14 +11,8 @@ import type { SymbolLayer, CircleLayer } from "react-map-gl/maplibre";
 
 const MAP_STYLE = `https://api.maptiler.com/maps/satellite/style.json?key=${(import.meta as any).env.VITE_MAPTILER_KEY}`;
 
-const PADDING = 15;
-// @ts-ignore
-const SAFE_BOUNDS: [number, number, number, number] = [
-  -73.9860855695 - PADDING,
-  -41.8631914258 - PADDING / 2,
-  -68.3666666666667 + PADDING,
-  -29.7220055555556 + PADDING / 2,
-];
+const CHILE_BOUNDS: [number, number, number, number] = [-75.58, -55.93, -67.26, -17.5];
+const CHILE_FIT_PADDING = 40;
 
 export type MapPoint = {
   lat: number;
@@ -36,6 +30,17 @@ export type BBox = {
   minLat: number;
   maxLat: number;
 };
+
+export function isMarkerVisible(
+  m: MapPoint,
+  minYear: number,
+  maxYear: number,
+  showDatesCount: boolean
+): boolean {
+  const years = Array.isArray(m.years) ? m.years : [];
+  if (years.length === 0) return !showDatesCount;
+  return years.some((year) => year >= minYear && year <= maxYear);
+}
 
 type MapProps = {
   markers: MapPoint[];
@@ -100,12 +105,10 @@ export default function MapComponent({
     if (interactionMode === "click") { setAreaPopup(null); setFrozenRect(null); }
   }, [interactionMode]);
 
-  const filteredMarkers = React.useMemo(() => {
-    return markers.filter((m) => {
-      if (!m.years || !Array.isArray(m.years)) return false;
-      return m.years.some(year => year >= minYear && year <= maxYear);
-    });
-  }, [markers, minYear, maxYear]);
+  const filteredMarkers = React.useMemo(
+    () => markers.filter((m) => isMarkerVisible(m, minYear, maxYear, showDatesCount)),
+    [markers, minYear, maxYear, showDatesCount]
+  );
 
   const geojson = React.useMemo(() => {
     const groups: Record<string, typeof filteredMarkers> = {};
@@ -236,7 +239,7 @@ export default function MapComponent({
       source: "sites",
       filter: ["all", ["!", ["has", "point_count"]], ["==", ["get", "isSiteMode"], 1]],
       paint: {
-        "circle-color": "#ea580c",
+        "circle-color": ["case", ["==", ["get", "dateCount"], 0], "#9ca3af", "#ea580c"] as any,
         "circle-radius": 12,
         "circle-stroke-width": 1,
         "circle-stroke-color": "#fff",
@@ -343,6 +346,9 @@ export default function MapComponent({
     ctx2.fillStyle = "#ffffff";
     ctx2.fillRect(0, 0, size, size);
     map.addImage("square", ctx2.getImageData(0, 0, size, size));
+
+    map.fitBounds(CHILE_BOUNDS, { padding: CHILE_FIT_PADDING, duration: 0 });
+    map.setMaxBounds(map.getBounds());
   }, []);
 
   const onClick = (event: MapLayerMouseEvent) => {
@@ -391,6 +397,7 @@ export default function MapComponent({
       });
     }
   };
+
   const handleOverlayMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!overlayRef.current || !mapRef.current) return;
     e.preventDefault();
@@ -464,6 +471,11 @@ export default function MapComponent({
     setSelectionRect(null);
   };
 
+  const hasEmptySites = React.useMemo(
+    () => !showDatesCount && markers.some((m) => !m.years || m.years.length === 0),
+    [markers, showDatesCount]
+  );
+
   return (
     <div style={{ height: "100%", width: "100%", position: "relative" }}>
 
@@ -522,6 +534,12 @@ export default function MapComponent({
           <span className="legendCircle" />
           <span className="legendLabel">Sites</span>
         </div>
+        {hasEmptySites && (
+          <div className="mapLegendItem">
+            <span className="legendCircle legendCircleEmpty" />
+            <span className="legendLabel">Sites without datings</span>
+          </div>
+        )}
         <div className="mapLegendItem">
           <span className="legendSquare">1</span>
           <span className="legendLabel">Datings</span>
@@ -532,11 +550,12 @@ export default function MapComponent({
         ref={mapRef}
         onLoad={onMapLoad}
         fadeDuration={0}
-        initialViewState={{ longitude: -70.6693, latitude: -33.4489, zoom: 4 }}
+        initialViewState={{
+          bounds: CHILE_BOUNDS,
+          fitBoundsOptions: { padding: CHILE_FIT_PADDING },
+        }}
         style={{ width: "100%", height: "100%" }}
         mapStyle={MAP_STYLE}
-        // @ts-ignore
-        maxBounds={SAFE_BOUNDS}
         onClick={onClick}
         interactiveLayerIds={[
           "clusters",
@@ -580,7 +599,9 @@ export default function MapComponent({
             <div className="popupInner">
               <div className="popupSiteName">{popupInfo.label}</div>
               <div className="popupMeta">
-                {popupInfo.dateCount} dating{popupInfo.dateCount !== 1 ? "s" : ""} in range
+                {popupInfo.dateCount === 0
+                  ? "No datings recorded"
+                  : `${popupInfo.dateCount} dating${popupInfo.dateCount !== 1 ? "s" : ""} in range`}
               </div>
               <button
                 className="popupQueryBtn"
@@ -647,4 +668,3 @@ export default function MapComponent({
     </div>
   );
 }
-

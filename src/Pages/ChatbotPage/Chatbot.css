@@ -5,7 +5,7 @@
   color: #eaeaea;
   display: flex;
   flex-direction: column;
-  padding: calc(6vh + 16px) 16px 32px 16px; /* Navbar is 6vh, plus 16px extra breathing room */
+  padding: calc(6vh + 16px) 16px 32px 16px;
   overflow: hidden;
 }
 

@@ -12,17 +12,14 @@ const Navbar = () => {
             <img src={logo}></img>
           </Link>
         </div>
-
         <Link to="/news">News</Link>
-	<Link to="/queries">Queries</Link>
+        <Link to="/queries">Queries</Link>
         <Link to="/chatbot">Chatbot</Link>
         <Link to="/map">Map</Link>
         <Link to="/graph">Graph</Link>
         <Link to="/data">Data</Link>
-        <Link to="/recursos">Recursos</Link>
+        <Link to="/resources">Resources</Link>
         <Link to="/about">About</Link>
-
-
     </div>
   );
 };

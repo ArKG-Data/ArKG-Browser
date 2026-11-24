@@ -8,7 +8,7 @@ import DataPage from "../Pages/DataPage/Data";
 import MapPage from "../Pages/Map/Page";
 import NewsPage from "../Pages/NewsPage/News";
 import ChatbotPage from "../Pages/ChatbotPage/Chatbot";
-import RecursosPage from "../Pages/RecursosPage/Recursos";
+import ResourcesPage from "../Pages/ResourcesPage/Resources";
 
 function Routing (){
     return (
@@ -23,7 +23,7 @@ function Routing (){
                 <Route path={'/graph'} element={<GraphPage></GraphPage>}></Route>
                 <Route path={'/data'} element={<DataPage></DataPage>}></Route>
                 <Route path={'/map'} element={<MapPage/>}></Route>
-                <Route path={'/recursos'} element={<RecursosPage/>}></Route>
+                <Route path={'/resources'} element={<ResourcesPage/>}></Route>
                 <Route path={'/about'} element={<AboutPage/>}></Route>
             </Routes>
         </BrowserRouter>

@@ -21,42 +21,45 @@ const InyectQuery: React.FC<InyectQueryProps> = ({ site, minYear, maxYear }) => 
       return;
     }
 
-    const query = `PREFIX :    <https://arkg.cl/>
-PREFIX wd:  <http://www.wikidata.org/entity/>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+    const query = `PREFIX :      <https://arkg.cl/>
+PREFIX arkgp: <https://arkg.cl/property/>
+PREFIX wd:    <http://www.wikidata.org/entity/>
+PREFIX wdt:   <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd:   <http://www.w3.org/2001/XMLSchema#>
 
-SELECT DISTINCT ?Dating ?Material ?Method ?14C_Age ?TL_Age ?Ref
+SELECT DISTINCT ?Dating ?Material ?Method ?MethodLabel ?14C_Age ?TL_Age ?Ref
 WHERE {
-  ?s wdt:P9047 <${site.iri}> .
-  ?s rdfs:label ?Dating .
-  ?s rdf:type :Fechado .
+  ?s rdf:type :Fechado ;
+     rdfs:label ?Dating ;
+     wdt:P9047 <${site.iri}> .
 
   OPTIONAL { ?s wdt:P1343 ?Ref . }
   OPTIONAL {
     ?s wdt:P186 ?materialURI .
     ?materialURI rdfs:label ?Material .
   }
-  OPTIONAL { ?s :dating_method ?Method . }
-  OPTIONAL { ?s :14C_age ?14C_Age . }
-  OPTIONAL { ?s :TL_Age_AC_DC ?TL_Age . }
+  OPTIONAL {
+    ?s arkgp:dating_method ?Method .
+    ?Method rdfs:label ?MethodLabel .
+  }
+  OPTIONAL { ?s arkgp:14C_age ?14C_Age . }
+  OPTIONAL { ?s arkgp:TL_Age_AC_DC ?TL_Age . }
+
+  # Presente fijo en 1950: año BCE/CE del 14C = 1950 - 14C_age (solo cambio de escala)
+  BIND(1950 - ?14C_Age AS ?C14_Year)
 
   FILTER(
     (!BOUND(?14C_Age) && !BOUND(?TL_Age))
     ||
-    (
-      (BOUND(?14C_Age) &&
-        (xsd:decimal(2026) - xsd:decimal(?14C_Age)) >= xsd:decimal(${minYear}) &&
-        (xsd:decimal(2026) - xsd:decimal(?14C_Age)) <= xsd:decimal(${maxYear})
-      )
-      ||
-      (BOUND(?TL_Age) &&
-        xsd:decimal(?TL_Age) >= xsd:decimal(${minYear}) &&
-        xsd:decimal(?TL_Age) <= xsd:decimal(${maxYear})
-      )
-    )
+    (BOUND(?14C_Age) &&
+      ?C14_Year >= xsd:decimal(${minYear}) &&
+      ?C14_Year <= xsd:decimal(${maxYear}))
+    ||
+    (BOUND(?TL_Age) &&
+      ?TL_Age >= xsd:decimal(${minYear}) &&
+      ?TL_Age <= xsd:decimal(${maxYear}))
   )
 }`;
 

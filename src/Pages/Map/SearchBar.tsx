@@ -1,83 +1,51 @@
-import { useEffect, useRef, useState } from "react";
-import { sparqlQuery } from "./sparql";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { MapPoint } from "./Map";
 
 type SearchBarProps = {
-  onSelect: (iri: string) => void;
+  items: MapPoint[];
+  onSelect: (site: MapPoint) => void;
 };
 
-type ResultItem = {
-  subject: { value: string };
-  label: { value: string };
-};
+const MAX_RESULTS = 10;
 
-export default function SearchBar({ onSelect }: SearchBarProps) {
+function normalize(s: string): string {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+export default function SearchBar({ items, onSelect }: SearchBarProps) {
   const [text, setText] = useState("");
-  const [results, setResults] = useState<ResultItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [isSelecting, setIsSelecting] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (!wrapRef.current) return;
-      if (!wrapRef.current.contains(e.target as Node)) {
-        setResults([]);
-      }
+      if (!wrapRef.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  useEffect(() => {
-    if (isSelecting) return;
+  const index = useMemo(
+    () => items.map((m) => ({ site: m, norm: normalize(m.label) })),
+    [items]
+  );
 
-    const t = text.trim();
+  const results = useMemo(() => {
+    const t = normalize(text.trim());
+    if (t.length < 2) return [];
 
-    if (t.length < 2) {
-      setResults([]);
-      return;
+    const starts: MapPoint[] = [];
+    const contains: MapPoint[] = [];
+    for (const { site, norm } of index) {
+      const pos = norm.indexOf(t);
+      if (pos === 0) starts.push(site);
+      else if (pos > 0) contains.push(site);
     }
-
-    const timeout = setTimeout(async () => {
-      setLoading(true);
-
-      const escaped = t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-      const query = `
-        PREFIX : <https://arkg.cl/>
-        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-
-        SELECT DISTINCT ?subject ?label
-        WHERE {
-          ?subject rdfs:label ?label .
-          ?subject rdf:type :ArchSite .
-          ?subject :x ?x .
-          FILTER(REGEX(STR(?label), "${escaped}", "i"))
-        }
-        LIMIT 10
-      `.trim();
-
-      if (!query) {
-        console.warn("SPARQL query vacía, no se enviará");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const data = await sparqlQuery(query);
-        setResults(data?.results?.bindings ?? []);
-      } catch (e) {
-        console.error(e);
-        setResults([]);
-      } finally {
-        setLoading(false);
-      }
-    }, 250);
-
-    return () => clearTimeout(timeout);
-  }, [text, isSelecting]);
+    const byLabel = (a: MapPoint, b: MapPoint) => a.label.localeCompare(b.label, "es");
+    return [...starts.sort(byLabel), ...contains.sort(byLabel)].slice(0, MAX_RESULTS);
+  }, [text, index]);
 
   return (
     <div ref={wrapRef} className="searchWrap">
@@ -85,29 +53,31 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
         className="searchInput"
         value={text}
         onChange={(e) => {
-          setIsSelecting(false);
           setText(e.target.value);
+          setOpen(true);
         }}
+        onFocus={() => setOpen(true)}
         placeholder="Search site..."
         autoComplete="off"
       />
 
-      {loading && <div className="searchStatus">Searching…</div>}
+      {open && text.trim().length >= 2 && results.length === 0 && (
+        <div className="searchStatus">No visible sites match</div>
+      )}
 
-      {results.length > 0 && (
+      {open && results.length > 0 && (
         <ul className="searchDropdown">
-          {results.map((r, i) => (
+          {results.map((site) => (
             <li
-              key={`${r.subject?.value ?? "s"}-${i}`}
+              key={site.id}
               className="searchItem"
               onClick={() => {
-                setIsSelecting(true);
-                setText(r.label.value);
-                setResults([]);
-                onSelect(r.subject.value);
+                setText(site.label);
+                setOpen(false);
+                onSelect(site);
               }}
             >
-              {r.label.value}
+              {site.label}
             </li>
           ))}
         </ul>

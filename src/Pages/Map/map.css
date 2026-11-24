@@ -193,6 +193,52 @@
   align-items: center;
 }
 
+.timelineInfoBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: -6px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: rgba(147, 197, 253, 0.85);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.timelineInfoBtn:hover {
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.timelineInfoChevron {
+  transition: transform 0.15s ease;
+}
+
+.timelineInfoChevron.open {
+  transform: rotate(180deg);
+}
+
+.timelineDisclaimer {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.timelineDisclaimer p {
+  margin: 0 0 6px;
+}
+
+.timelineDisclaimer p:last-child {
+  margin-bottom: 0;
+}
+
 .mapToggle {
   display: flex;
   align-items: center;
@@ -480,4 +526,8 @@
   background: currentColor;
   opacity: 0.9;
   flex-shrink: 0;
+}
+
+.legendCircleEmpty {
+  background: #9ca3af;
 }

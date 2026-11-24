@@ -5,11 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import './Chatbot.css';
 
 const API_URL = import.meta.env.VITE_API_CHATBOT_URL || 'http://127.0.0.1:8000';
+const WELCOME_MESSAGE = "Hi! I'm an assistant that generates SPARQL queries. You can ask in English or Spanish. How can I help you?";
 
 const ChatbotPage = () => {
   const [inputText, setInputText] = useState('');
   const [messages, setMessages] = useState([
-    { role: 'bot', text: '¡Hola! Soy un asistente que genera consultas SPARQL. ¿En qué te puedo ayudar?' }
+    { role: 'bot', text: WELCOME_MESSAGE }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef(null);
@@ -35,16 +36,16 @@ const ChatbotPage = () => {
 
   const handleReset = () => {
     setMessages([
-      { role: 'bot', text: '¡Hola! Soy un asistente que genera consultas SPARQL. ¿En qué te puedo ayudar?' }
+      { role: 'bot', text: WELCOME_MESSAGE }
     ]);
   };
 
-  const enviarPregunta = async () => {
+  const sendQuestion = async () => {
     if (!inputText.trim()) return;
 
-    const textoDelUsuario = inputText;
+    const userText = inputText;
     setInputText('');
-    setMessages(prev => [...prev, { role: 'user', text: textoDelUsuario }]);
+    setMessages(prev => [...prev, { role: 'user', text: userText }]);
     setIsLoading(true);
 
     const history = messages.slice(1).map(msg => ({
@@ -58,16 +59,19 @@ const ChatbotPage = () => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ user_text: textoDelUsuario, history })
+            body: JSON.stringify({ user_text: userText, history })
         });
 
-        const data = await response.json();
-        console.log("SPARQL Generado:", data.sparql_result);
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            throw new Error(data.detail || `HTTP ${response.status}`);
+        }
+        console.log("Generated SPARQL:", data.sparql_result);
         
-        setMessages(prev => [...prev, { role: 'bot', text: data.sparql_result || "No se recibió ninguna consulta SPARQL válida de la API." }]);
+        setMessages(prev => [...prev, { role: 'bot', text: data.sparql_result || "No valid SPARQL query was received from the API." }]);
     } catch (error) {
-        console.error("Error conectando con la API interna:", error);
-        setMessages(prev => [...prev, { role: 'bot', text: "Hubo un error al conectar con la API. Asegúrate de que el servidor backend esté encendido en http://127.0.0.1:8000.\n\n" + String(error) }]);
+        console.error("Error connecting to the internal API:", error);
+        setMessages(prev => [...prev, { role: 'bot', text: `There was an error connecting to the API. Make sure the backend server is running at ${API_URL}.\n\n${String(error)}` }]);
     } finally {
         setIsLoading(false);
     }
@@ -76,10 +80,10 @@ const ChatbotPage = () => {
   return (
     <div className="chatbotRoot">
         <Container size="xl" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', width: '100%', minHeight: 0 }}>
-            <Paper shadow="xl" radius="lg" p="xl" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#252525', border: '1px solid rgba(255, 255, 255, 0.08)', minHeight: 0 }}>
+            <Paper shadow="xl" radius="lg" pt="xl" px="xl" pb="sm" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#252525', border: '1px solid rgba(255, 255, 255, 0.08)', minHeight: 0 }}>
                 <Group justify="space-between" align="center" mb="lg">
                     <Text size="xl" fw={800} variant="gradient" gradient={{ from: 'rgba(147, 197, 253, 1)', to: 'rgba(59, 130, 246, 1)', deg: 45 }}>
-                        Generador de Consultas SPARQL
+                        SPARQL Query Generator
                     </Text>
                     <Button 
                         variant="filled" 
@@ -94,7 +98,7 @@ const ChatbotPage = () => {
                             pointerEvents: messages.length <= 1 ? 'none' : 'auto'
                         }}
                     >
-                        Nueva Consulta
+                        New Query
                     </Button>
                 </Group>
                 
@@ -117,7 +121,7 @@ const ChatbotPage = () => {
                                         color: '#eaeaea'
                                     }}
                                 >
-                                    {msg.role === 'bot' && idx > 0 && !msg.text.startsWith("Hubo un error") && msg.text.includes("SELECT") ? (
+                                    {msg.role === 'bot' && idx > 0 && !msg.text.startsWith("There was an error") && msg.text.includes("SELECT") ? (
                                         <>
                                             <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '0.9rem', color: '#a5d6ff' }}>{msg.text}</pre>
                                             <Group justify="flex-end" mt="sm">
@@ -128,7 +132,7 @@ const ChatbotPage = () => {
                                                     leftSection={<IconPlayerPlay size="1rem" />}
                                                     onClick={() => handleRunInQueries(msg.text)}
                                                 >
-                                                    Ejecutar en Queries
+                                                    Run in Queries
                                                 </Button>
                                             </Group>
                                         </>
@@ -151,15 +155,15 @@ const ChatbotPage = () => {
                     </div>
                 </ScrollArea>
 
-                <form onSubmit={(e) => { e.preventDefault(); enviarPregunta(); }} style={{ position: 'relative', marginTop: '1rem' }}>
+                <form onSubmit={(e) => { e.preventDefault(); sendQuestion(); }} style={{ position: 'relative', marginTop: '1rem' }}>
                     <Textarea
-                        placeholder="Escribe qué consulta SPARQL quieres generar..."
+                        placeholder="Describe the SPARQL query you want to generate..."
                         value={inputText}
                         onChange={(e) => setInputText(e.currentTarget.value)}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
-                                enviarPregunta();
+                                sendQuestion();
                             }
                         }}
                         disabled={isLoading}
@@ -205,6 +209,15 @@ const ChatbotPage = () => {
                         />
                     </ActionIcon>
                 </form>
+
+                <Text
+                    size="xs"
+                    ta="center"
+                    mt={8}
+                    style={{ color: 'rgba(255, 255, 255, 0.45)' }}
+                >
+                    This assistant uses AI and can make mistakes. Review the generated queries before running them.
+                </Text>
             </Paper>
         </Container>
     </div>
@@ -212,4 +225,3 @@ const ChatbotPage = () => {
 };
 
 export default ChatbotPage;
-
