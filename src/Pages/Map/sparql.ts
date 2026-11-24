@@ -1,4 +1,4 @@
-const DEFAULT_ENDPOINT = "https://arkg.cl/api/sparql";
+const DEFAULT_ENDPOINT = `${import.meta.env.VITE_ARKG_ENDPOINT}/sparql`;
 
 export async function sparqlQuery(query: string) {
   const endpoint =

@@ -11,15 +11,6 @@ import type { SymbolLayer, CircleLayer } from "react-map-gl/maplibre";
 
 const MAP_STYLE = `https://api.maptiler.com/maps/satellite/style.json?key=${(import.meta as any).env.VITE_MAPTILER_KEY}`;
 
-const PADDING = 15;
-// @ts-ignore
-const SAFE_BOUNDS: [number, number, number, number] = [
-  -73.9860855695 - PADDING,
-  -41.8631914258 - PADDING / 2,
-  -68.3666666666667 + PADDING,
-  -29.7220055555556 + PADDING / 2,
-];
-
 export type MapPoint = {
   lat: number;
   lng: number;
@@ -56,6 +47,8 @@ type PopupInfo = {
   id: string;
   years?: number[];
   dateCount: number;
+  siteCount: number;
+  isMultiple: boolean;
 };
 
 type AreaPopupInfo = {
@@ -106,26 +99,41 @@ export default function MapComponent({
   }, [markers, minYear, maxYear]);
 
   const geojson = React.useMemo(() => {
+    const groups: Record<string, typeof filteredMarkers> = {};
+    for (let i = 0; i < filteredMarkers.length; i++) {
+      const m = filteredMarkers[i];
+      const key = `${m.lat},${m.lng}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(m);
+    }
+
     return {
       type: "FeatureCollection",
-      features: filteredMarkers.map((m) => {
-        const filteredCount = m.years
-          ? m.years.filter(y => y >= minYear && y <= maxYear).length
-          : 0;
+      features: Object.keys(groups).map((key) => {
+        const group = groups[key];
+        const first = group[0];
+        const siteCount = group.length;
+
+        const filteredDateCount = group.reduce((sum, m) => {
+          return sum + (m.years ? m.years.filter(y => y >= minYear && y <= maxYear).length : 0);
+        }, 0);
+
         return {
           type: "Feature",
           properties: {
-            id: m.id,
-            label: m.label,
-            iri: m.iri,
-            lat: m.lat,
-            lng: m.lng,
-            years: m.years,
-            dateCount: filteredCount,
+            id: first.id,
+            label: siteCount > 1 ? `${siteCount} Sites at this location` : first.label,
+            iri: first.iri,
+            lat: first.lat,
+            lng: first.lng,
+            years: first.years,
+            dateCount: filteredDateCount,
+            siteCount: siteCount,
+            isMultiple: siteCount > 1,
           },
           geometry: {
             type: "Point",
-            coordinates: [m.lng, m.lat],
+            coordinates: [first.lng, first.lat],
           },
         };
       }),
@@ -143,12 +151,12 @@ export default function MapComponent({
         "icon-allow-overlap": true,
         "icon-size": [
           "step",
-          ["get", "point_count"],
+          ["get", "sites_sum"],
           4.0,
           20, 5.6,
           100, 7.0,
         ] as any,
-        "text-field": "{point_count_abbreviated}",
+        "text-field": ["to-string", ["get", "sites_sum"]],
         "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
         "text-size": 18,
         "text-allow-overlap": true,
@@ -157,7 +165,7 @@ export default function MapComponent({
       paint: {
         "icon-color": [
           "step",
-          ["get", "point_count"],
+          ["get", "sites_sum"],
           "#2c7899",
           10, "#b3a124",
           50, "#db65ad",
@@ -188,7 +196,7 @@ export default function MapComponent({
           50, 7.0,
           500, 9.0,
         ] as any,
-        "text-field": ["to-string", ["get", "dates_sum"]],  // ← aquí
+        "text-field": ["to-string", ["get", "dates_sum"]],
         "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
         "text-size": 18,
         "text-allow-overlap": true,
@@ -220,9 +228,31 @@ export default function MapComponent({
       filter: ["all", ["!", ["has", "point_count"]], ["==", ["get", "isSiteMode"], 1]],
       paint: {
         "circle-color": "#ea580c",
-        "circle-radius": 10,
+        "circle-radius": 12,
         "circle-stroke-width": 1,
         "circle-stroke-color": "#fff",
+      },
+    }),
+    []
+  );
+
+  const unclusteredPointTextLayer: SymbolLayer = React.useMemo(
+    () => ({
+      id: "unclustered-point-text",
+      type: "symbol",
+      source: "sites",
+      filter: ["all", ["!", ["has", "point_count"]], ["==", ["get", "isSiteMode"], 1]],
+      layout: {
+        "text-field": ["to-string", ["get", "siteCount"]],
+        "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+        "text-size": 12,
+        "text-allow-overlap": true,
+        "text-offset": [0, 0],
+      },
+      paint: {
+        "text-color": "#ffffff",
+        "text-halo-color": "rgba(0, 0, 0, 0.5)",
+        "text-halo-width": 1,
       },
     }),
     []
@@ -330,7 +360,7 @@ export default function MapComponent({
 
     const id = feature.layer?.id;
     const isUnclustered =
-      id === "unclustered-point-circle" || id === "unclustered-point-square";
+      id === "unclustered-point-circle" || id === "unclustered-point-square" || id === "unclustered-point-text";
 
     if (isUnclustered) {
       const props: any = feature.properties;
@@ -340,14 +370,15 @@ export default function MapComponent({
         iri: props?.iri,
         lat: Number(props?.lat),
         lng: Number(props?.lng),
-        years: Array.isArray(props?.years) ? props.years.map(Number) : undefined,
+        years: Array.isArray(props?.years) ? props.years.map(Number) : (typeof props?.years === 'string' ? JSON.parse(props.years).map(Number) : undefined),
         dateCount: Number(props?.dateCount ?? 0),
+        siteCount: Number(props?.siteCount ?? 1),
+        isMultiple: props?.isMultiple === true || props?.isMultiple === "true",
       };
       setPopupInfo(pointData);
       mapRef.current.easeTo({
         center: [pointData.lng, pointData.lat],
-        zoom: 16,
-        duration: 900,
+        duration: 700,
       });
     }
   };
@@ -492,11 +523,15 @@ export default function MapComponent({
         ref={mapRef}
         onLoad={onMapLoad}
         fadeDuration={0}
-        initialViewState={{ longitude: -70.6693, latitude: -33.4489, zoom: 4 }}
+	initialViewState={{
+          bounds: [-75.6, -56.0, -67.0, -17.5]
+        }}
         style={{ width: "100%", height: "100%" }}
         mapStyle={MAP_STYLE}
         // @ts-ignore
-        maxBounds={SAFE_BOUNDS}
+	maxBounds={[
+          -110.0, -60.0, -30.0, -10.0
+        ]}
         onClick={onClick}
         interactiveLayerIds={[
           "clusters",
@@ -515,11 +550,15 @@ export default function MapComponent({
           cluster={true}
           clusterMaxZoom={14}
           clusterRadius={50}
-          clusterProperties={{ dates_sum: ["+", ["get", "dateCount"]] }}
+          clusterProperties={{
+            dates_sum: ["+", ["get", "dateCount"]],
+            sites_sum: ["+", ["get", "siteCount"]]
+          }}
         >
           {!showDatesCount && <Layer {...clusterLayer} />}
           {showDatesCount && <Layer {...clusterSquareLayer} />}
           {!showDatesCount && <Layer {...unclusteredPointCircleLayer} />}
+          {!showDatesCount && <Layer {...unclusteredPointTextLayer} />}
           {showDatesCount && <Layer {...unclusteredPointSquareLayer} />}
         </Source>
 
@@ -540,21 +579,31 @@ export default function MapComponent({
               </div>
               <button
                 className="popupQueryBtn"
-                onClick={() =>
-                  onViewInQueries(
-                    {
-                      id: popupInfo.id,
-                      label: popupInfo.label,
-                      iri: popupInfo.iri,
-                      lat: popupInfo.lat,
-                      lng: popupInfo.lng,
-                      years: popupInfo.years,
-                      dateCount: popupInfo.dateCount,
-                    },
-                    minYear,
-                    maxYear
-                  )
-                }
+                onClick={() => {
+                  if (popupInfo.isMultiple) {
+                    const eps = 0.0001;
+                    onAreaSelect({
+                      minLng: popupInfo.lng - eps,
+                      maxLng: popupInfo.lng + eps,
+                      minLat: popupInfo.lat - eps,
+                      maxLat: popupInfo.lat + eps,
+                    });
+                  } else {
+                    onViewInQueries(
+                      {
+                        id: popupInfo.id,
+                        label: popupInfo.label,
+                        iri: popupInfo.iri,
+                        lat: popupInfo.lat,
+                        lng: popupInfo.lng,
+                        years: popupInfo.years,
+                        dateCount: popupInfo.dateCount,
+                      },
+                      minYear,
+                      maxYear
+                    );
+                  }
+                }}
               >
                 View in Queries
               </button>
@@ -593,3 +642,4 @@ export default function MapComponent({
     </div>
   );
 }
+
